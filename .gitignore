@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+-e node_modules
+.vscode
+.env*
+*.log
+

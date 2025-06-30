@@ -1,12 +1,17 @@
 import { AIAssistantPanel } from './components/AIAssistantPanel.js';
 import { CanvasPane } from './components/CanvasPane.js';
 import { PreviewPane } from './components/PreviewPane.js';
+// @ts-ignore vite handles ts extension
+import { FluxTestPage } from './components/FluxTest';
 
 import { useState } from 'react';
 // @ts-ignore vite handles ts extension
 import LoadingScreen from './components/LoadingScreen';
 
 function App() {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/flux-test')) {
+    return <FluxTestPage />;
+  }
   const [loaded, setLoaded] = useState(false);
 
   if (!loaded) {
