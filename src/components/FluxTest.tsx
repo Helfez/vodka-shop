@@ -8,6 +8,7 @@ export function FluxTestPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const generate = async () => {
     setError(null);
@@ -144,9 +145,24 @@ export function FluxTestPage() {
                 key={idx}
                 src={url}
                 alt={`result-${idx}`}
-                className="w-full h-auto rounded border"
+                onClick={() => setPreviewUrl(url)}
+                className="w-full h-auto rounded border cursor-zoom-in hover:opacity-80 transition"
               />
             ))}
+          </div>
+        )}
+
+        {/* preview overlay */}
+        {previewUrl && (
+          <div
+            className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+            onClick={() => setPreviewUrl(null)}
+          >
+            <img
+              src={previewUrl}
+              alt="preview"
+              className="max-w-[90vw] max-h-[90vh] object-contain shadow-xl rounded"
+            />
           </div>
         )}
       </div>
