@@ -33,14 +33,13 @@ export async function POST(request: Request) {
           headers: { 'Content-Type': 'application/json' },
         });
       }
-      // @ts-ignore Aimixhub allows passing image_url directly
-      result = await openai.images.generate({
+            result = await openai.images.generate({
         model: 'gpt-image-1',
         prompt,
         n: 1,
         size: '1024x1024',
         image_url: srcImageUrl,
-      });
+      } as any);
     } else {
       result = await openai.images.generate({
         model: 'gpt-image-1',
