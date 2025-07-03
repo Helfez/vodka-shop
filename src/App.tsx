@@ -3,14 +3,21 @@ import { CanvasPane } from './components/CanvasPane.js';
 import { PreviewPane } from './components/PreviewPane.js';
 // @ts-ignore vite handles ts extension
 import { FluxTestPage } from './components/FluxTest';
+// @ts-ignore vite handles ts extension
+import KontextChat from './components/KontextChat';
+// @ts-ignore vite handles ts extension
+import AiChat from './pages/AiChat';
 
 import { useState } from 'react';
 // @ts-ignore vite handles ts extension
 import LoadingScreen from './components/LoadingScreen';
 
 function App() {
-  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/flux-test')) {
-    return <FluxTestPage />;
+  if (typeof window !== 'undefined') {
+    const path = window.location.pathname;
+    if (path.startsWith('/flux-test')) return <FluxTestPage />;
+    if (path.startsWith('/kontext')) return <KontextChat />;
+if (path.startsWith('/ai')) return <AiChat />;
   }
   const [loaded, setLoaded] = useState(false);
 

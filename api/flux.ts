@@ -53,6 +53,7 @@ interface FluxRequest {
   imageUrl?: string;
   aspectRatio?: string;
   imgCount?: number;
+  parentGenerateUuid?: string;
 }
 
 export async function POST(request: Request) {
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const { mode, prompt, imageUrl, aspectRatio = '1:1', imgCount = 1 } = data;
+  const { mode, prompt, imageUrl, aspectRatio = '1:1', imgCount = 1, parentGenerateUuid } = data;
   if (mode === 'img2img' && !imageUrl) {
     return new Response(JSON.stringify({ error: 'imageUrl required for img2img' }), {
       headers: { 'Content-Type': 'application/json' },
@@ -107,6 +108,10 @@ export async function POST(request: Request) {
       prompt,
       image_list: [cloudSrc],
     };
+  }
+
+  if (parentGenerateUuid) {
+    generateParams.parent_generate_uuid = parentGenerateUuid;
   }
 
   const payload = { templateUuid, generateParams };
@@ -177,7 +182,7 @@ export async function POST(request: Request) {
        }
 
        console.log(`Flux task ${generateUuid} (${mode}) completed in ${Date.now() - taskStart} ms`);
-       return new Response(JSON.stringify({ images }), {
+       return new Response(JSON.stringify({ images, generateUuid }), {
          headers: { 'Content-Type': 'application/json' },
        });
     }
