@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const result = await openai.images.generate({
-      model: 'image-one',
+      model: 'gpt-image-1',
       prompt,
       n: 1,
       size: '1024x1024',
