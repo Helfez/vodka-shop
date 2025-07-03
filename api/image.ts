@@ -11,11 +11,13 @@ const openai = new OpenAI({
 
 interface ImageRequestBody {
   prompt: string;
+  srcImageUrl?: string; // optional for edit mode
+  mode?: 'generate' | 'edit';
 }
 
 export async function POST(request: Request) {
   try {
-    const { prompt } = (await request.json()) as ImageRequestBody;
+    const { prompt, srcImageUrl, mode = 'generate' } = (await request.json()) as ImageRequestBody;
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt required' }), {
         status: 400,
@@ -23,17 +25,35 @@ export async function POST(request: Request) {
       });
     }
 
-    const result = await openai.images.generate({
-      model: 'gpt-image-1',
-      prompt,
-      n: 1,
-      size: '1024x1024',
-    });
+    let result;
+    if (mode === 'edit') {
+      if (!srcImageUrl) {
+        return new Response(JSON.stringify({ error: 'srcImageUrl required for edit mode' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      // @ts-ignore Aimixhub allows passing image_url directly
+      result = await openai.images.generate({
+        model: 'gpt-image-1',
+        prompt,
+        n: 1,
+        size: '1024x1024',
+        image_url: srcImageUrl,
+      });
+    } else {
+      result = await openai.images.generate({
+        model: 'gpt-image-1',
+        prompt,
+        n: 1,
+        size: '1024x1024',
+      });
+    }
 
-    const imageUrl = result.data?.[0]?.url;
-    if (!imageUrl) throw new Error('No image URL returned');
+    const outputUrl = result.data?.[0]?.url;
+    if (!outputUrl) throw new Error('No image URL returned');
 
-    return new Response(JSON.stringify({ imageUrl }), {
+    return new Response(JSON.stringify({ imageUrl: outputUrl }), {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {

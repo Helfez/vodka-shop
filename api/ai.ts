@@ -64,30 +64,40 @@ All design suggestions should be printable, structurally sound, and visually exp
 
     // Request the chat completion from Aimixhub
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      stream: true,
+      model: 'gpt-4.1-mini',
+      function_call: 'auto',
+      functions: [
+        {
+          name: 'generate_image',
+          description: 'Generate an image based on the provided prompt',
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'High-quality prompt for the image model' },
+            },
+            required: ['prompt'],
+          },
+        },
+        {
+          name: 'edit_image',
+          description: 'Generate a new image based on an existing image and prompt',
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: { type: 'string', description: 'Refined prompt for editing the image' },
+              imageUrl: { type: 'string', description: 'URL of the source image' },
+            },
+            required: ['prompt', 'imageUrl'],
+          },
+        },
+      ],
+      stream: false,
       messages: finalMessages,
     });
 
-    // Manually create a ReadableStream to forward the response
-    const stream = new ReadableStream({
-      async start(controller) {
-        const encoder = new TextEncoder();
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) {
-            controller.enqueue(encoder.encode(text));
-          }
-        }
-        controller.close();
-      },
-    });
-
-    // Return the stream as a standard Response
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
+    // Return raw JSON so frontend can inspect function_call or content
+    return new Response(JSON.stringify(response), {
+      headers: { 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
