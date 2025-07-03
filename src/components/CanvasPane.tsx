@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
+import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 
 // Basic toolbar actions
 // Style option definitions
@@ -21,6 +22,9 @@ export function CanvasPane() {
   const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('pencil');
   // style selection state: default first option checked
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
+
+  // AI generation hook
+  const { generate, loading, error, result } = useBoardGenerate();
 
   const toggleStyle = (id: string) => {
     setSelectedStyles(prev => {
@@ -147,7 +151,11 @@ export function CanvasPane() {
         >
           🖱️
         </button>
-      </div>
+            {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
+      {result && (
+        <div className="text-green-600 text-sm mt-1">Generated!</div>
+      )}
+    </div>
       {/* Style picker */}
       <div className="flex gap-3 mb-3 overflow-x-auto whitespace-nowrap pb-1">
         {STYLE_OPTIONS.map(opt => {
@@ -169,6 +177,20 @@ export function CanvasPane() {
             </button>
           );
         })}
+      </div>
+
+      {/* Generate button */}
+      <div className="mb-4 flex justify-end">
+        <button
+          disabled={loading}
+          onClick={() => {
+            const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
+            generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
+          }}
+          className="px-4 py-2 rounded bg-cyan-500 text-white disabled:opacity-50"
+        >
+          {loading ? 'Generating…' : 'Generate'}
+        </button>
       </div>
 
       {/* Canvas */}
