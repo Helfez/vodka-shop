@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import type { ChatRole } from '../components/ChatMessage';
+// @ts-ignore vite handles ts extension
+import type { ChatRole } from '../components/ChatMessage.js';
 
 export interface ChatItem {
   role: ChatRole;

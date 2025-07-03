@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import type { OpenAI as OpenAIClient } from 'openai';
 
 // Image generation endpoint powered by Aimixhub image-one
 // POST /api/image  { prompt: string }

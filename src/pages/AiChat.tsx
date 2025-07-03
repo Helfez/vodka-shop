@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
 import ChatMessage from '../components/ChatMessage';
 // @ts-ignore vite handles ts extension
-import useAiChat, { ChatItem } from '../hooks/useAiChat';
+import useAiChat from '../hooks/useAiChat.js';
+import type { ChatItem } from '../hooks/useAiChat.js';
 
 export default function AiChat() {
   const { messages, sendMessage, loading, error } = useAiChat();
