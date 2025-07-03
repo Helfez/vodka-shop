@@ -50,10 +50,17 @@ export async function POST(request: Request) {
       });
     }
 
-    const outputUrl = result.data?.[0]?.url;
+    let outputUrl = result.data?.[0]?.url as string | undefined;
+    if (!outputUrl) {
+      const b64 = (result.data?.[0] as any)?.b64_json;
+      if (b64) {
+        outputUrl = `data:image/png;base64,${b64}`;
+      }
+    }
+
     if (!outputUrl) {
       console.error('Aimixhub image generate response:', JSON.stringify(result));
-      const firstErr = (result as any).error?.message || 'No image URL returned';
+      const firstErr = (result as any).error?.message || 'No image returned';
       throw new Error(firstErr);
     }
 
