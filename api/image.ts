@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       });
     }
 
-    let result;
+    let result: any;
     if (mode === 'edit') {
       if (!srcImageUrl) {
         return new Response(JSON.stringify({ error: 'srcImageUrl required for edit mode' }), {
@@ -51,7 +51,11 @@ export async function POST(request: Request) {
     }
 
     const outputUrl = result.data?.[0]?.url;
-    if (!outputUrl) throw new Error('No image URL returned');
+    if (!outputUrl) {
+      console.error('Aimixhub image generate response:', JSON.stringify(result));
+      const firstErr = (result as any).error?.message || 'No image URL returned';
+      throw new Error(firstErr);
+    }
 
     return new Response(JSON.stringify({ imageUrl: outputUrl }), {
       headers: { 'Content-Type': 'application/json' },
