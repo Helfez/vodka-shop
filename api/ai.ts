@@ -12,12 +12,15 @@ const openai = new OpenAI({
 
 interface RequestBody {
   messages: OpenAIClient.Chat.ChatCompletionMessageParam[];
-  task: string; // Keep task for system prompt logic
+  task: string;
+  boardImageUrl?: string; // rasterized board PNG
+  templateId?: string;
+  userPrompt?: string;
 }
 
 export async function POST(request: Request) {
   try {
-    const { messages, task } = (await request.json()) as RequestBody;
+    const { messages, task, boardImageUrl, templateId, userPrompt } = (await request.json()) as RequestBody;
 
     // System prompts for different tasks
     const systemPrompts: { [key: string]: OpenAIClient.Chat.ChatCompletionMessageParam } = {
@@ -55,16 +58,39 @@ All design suggestions should be printable, structurally sound, and visually exp
       },
     };
 
-    const systemPrompt = systemPrompts[task] || systemPrompts.default;
+    let systemPrompt = systemPrompts[task] || systemPrompts.default;
 
-    const finalMessages: OpenAIClient.Chat.ChatCompletionMessageParam[] = [
-      systemPrompt,
-      ...messages,
-    ];
+  // Special prompt for vision board generation
+  if (task === 'board-generate') {
+    systemPrompt = {
+      role: 'system',
+      content: `You are BoardVisionAgent.
+You receive a design board image and templateId plus optional userPrompt.
+Analyse the visual layout, colours, shapes, and any sketches. Then decide:\n- If the board image looks like a rough sketch or reference, call the function edit_image with prompt and imageUrl.\n- Otherwise, call generate_image.\nRules:\n1. Prompt must be in English, max 120 words.\n2. Avoid camera jargon.\n3. Preserve main textual content and colour scheme.\n4. Obey templateId styling guidelines (poster, banner, card etc.).` };
+  }
+
+    let finalMessages: OpenAIClient.Chat.ChatCompletionMessageParam[];
+
+    if (task === 'board-generate' && boardImageUrl) {
+      // Vision message structure with image
+      const visionUser: OpenAIClient.Chat.ChatCompletionMessageParam = {
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: boardImageUrl },
+          {
+            type: 'text',
+            text: `templateId: ${templateId || 'generic'}\n${userPrompt || ''}`,
+          },
+        ] as any, // OpenAI vision content type
+      } as any;
+      finalMessages = [systemPrompt, visionUser];
+    } else {
+      finalMessages = [systemPrompt, ...messages];
+    }
 
     // Request the chat completion from Aimixhub
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o-vision-mini' : 'gpt-4.1-mini',
       function_call: 'auto',
       functions: [
         {
