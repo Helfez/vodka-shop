@@ -76,7 +76,7 @@ Analyse the visual layout, colours, shapes, and any sketches. Then decide:\n- If
       const visionUser: OpenAIClient.Chat.ChatCompletionMessageParam = {
         role: 'user',
         content: [
-          { type: 'image_url', image_url: boardImageUrl },
+          { type: 'image_url', image_url: { url: boardImageUrl } },
           {
             type: 'text',
             text: `templateId: ${templateId || 'generic'}\n${userPrompt || ''}`,
