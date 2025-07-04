@@ -83,10 +83,10 @@ Keep the design moderately simplified: avoid hyper-complex details that are not 
 Use concise and structured prompt formatting, including elements like [subject], [pose], [material/look], [style], [color], and [render format].
 
 Output only the final prompt. Do not include explanations or alternative prompts.`
-        }
+        };
 
     let finalMessages: OpenAIClient.Chat.ChatCompletionMessageParam[];
-
+    
     if (task === 'board-generate' && boardImageUrl) {
       // Vision message structure with image
       const visionUser: OpenAIClient.Chat.ChatCompletionMessageParam = {
