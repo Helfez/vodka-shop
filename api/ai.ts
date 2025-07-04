@@ -60,6 +60,9 @@ All design suggestions should be printable, structurally sound, and visually exp
 
     let systemPrompt = systemPrompts[task] || systemPrompts.default;
 
+    // prepare final messages array
+    let finalMessages: OpenAIClient.Chat.ChatCompletionMessageParam[] = [];
+
   // Special prompt for vision board generation
   if (task === 'board-generate') {
     systemPrompt = {
@@ -85,8 +88,6 @@ Use concise and structured prompt formatting, including elements like [subject],
 Output only the final prompt. Do not include explanations or alternative prompts.`
         };
 
-    let finalMessages: OpenAIClient.Chat.ChatCompletionMessageParam[];
-    
     if (task === 'board-generate' && boardImageUrl) {
       // Vision message structure with image
       const visionUser: OpenAIClient.Chat.ChatCompletionMessageParam = {
@@ -101,6 +102,12 @@ Output only the final prompt. Do not include explanations or alternative prompts
       } as any;
       finalMessages = [systemPrompt, visionUser];
     } else {
+      finalMessages = [systemPrompt, ...messages];
+    }
+  } // end if task === 'board-generate'
+
+    // Fallback for other tasks
+    if (finalMessages.length === 0) {
       finalMessages = [systemPrompt, ...messages];
     }
 
