@@ -142,7 +142,8 @@ Output only the final prompt. Do not include explanations or alternative prompts
       headers: { 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } // end try
+  catch (error) {
     console.error('Error in AI API:', error);
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), { 
       status: 500,
