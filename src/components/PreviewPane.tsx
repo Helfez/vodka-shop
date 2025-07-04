@@ -1,20 +1,21 @@
 import { useState } from 'react';
 
-export function PreviewPane() {
+interface PreviewPaneProps { imageUrl?: string | null; }
+
+export function PreviewPane({ imageUrl }: PreviewPaneProps) {
   const [size, setSize] = useState(6); // cm
 
   return (
     <div className="flex flex-col h-full p-4 bg-white">
       <h2 className="text-xl font-semibold mb-4">Preview</h2>
 
-      {/* Image placeholder */}
+      {/* Image preview */}
       <div className="w-full aspect-square bg-gray-100 border rounded-lg flex items-center justify-center mb-4 overflow-hidden">
-        {/* TODO: replace src with generated sketch */}
-        <img
-          src="https://placehold.co/300x300?text=Sketch"
-          alt="Design preview"
-          className="object-contain w-full h-full"
-        />
+        {imageUrl ? (
+          <img src={imageUrl} alt="preview" className="object-contain w-full h-full" />
+        ) : (
+          <img src="https://placehold.co/300x300?text=Sketch" alt="placeholder" className="object-contain w-full h-full" />
+        )}
       </div>
 
       {/* Size control */}

@@ -15,7 +15,8 @@ const STYLE_OPTIONS: StyleOption[] = [
   { id: 'warhammer', name: 'Warhammer', img: '/Style_img/Warhammer Style.png' },
 ];
 
-export function CanvasPane() {
+interface CanvasPaneProps { onGenerated?: (url: string) => void; }
+export function CanvasPane({ onGenerated }: CanvasPaneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
@@ -25,6 +26,11 @@ export function CanvasPane() {
 
   // AI generation hook
   const { generate, loading, error, result } = useBoardGenerate();
+
+  // Notify parent when result changes
+  useEffect(() => {
+    if (result?.imageUrl && onGenerated) onGenerated(result.imageUrl);
+  }, [result, onGenerated]);
 
   const toggleStyle = (id: string) => {
     setSelectedStyles(prev => {
@@ -204,4 +210,4 @@ export function CanvasPane() {
   );
 }
 
-// Tailwind component style helpers could be extracted, kept inline for brevity
+

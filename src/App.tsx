@@ -13,6 +13,7 @@ import { useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
 
 function App() {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
@@ -38,12 +39,12 @@ if (path.startsWith('/ai')) return <AiChat />;
           
           <div className="flex-grow">
             {/* dynamically imported to avoid SSR issues if any */}
-            <CanvasPane />
+            <CanvasPane onGenerated={(url:string)=>setPreviewUrl(url)} />
           </div>
         </div>
         {/* Right – Preview */}
         <div className="col-span-3 bg-white overflow-hidden">
-          <PreviewPane />
+          <PreviewPane imageUrl={previewUrl} />
         </div>
       </div>
     </div>
