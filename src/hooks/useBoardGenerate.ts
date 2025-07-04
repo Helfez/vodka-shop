@@ -64,19 +64,41 @@ export function useBoardGenerate() {
         const args = JSON.parse(argsJson || '{}');
         const prompt = args.prompt as string;
         if (name === 'generate_image') {
-          const imgRes = await fetch('/api/image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, mode: 'generate' }),
-          });
+          const ctrl = new AbortController();
+          const timeoutId = setTimeout(() => ctrl.abort(), 60000); // 60s timeout
+          let imgRes: Response;
+          try {
+            imgRes = await fetch('/api/image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt, mode: 'generate' }),
+              signal: ctrl.signal,
+            });
+          } catch (err) {
+            if ((err as any).name === 'AbortError') throw new Error('Image generation timeout');
+            throw err;
+          } finally {
+            clearTimeout(timeoutId);
+          }
           const { imageUrl } = await imgRes.json();
           setResult({ imageUrl, prompt });
         } else if (name === 'edit_image') {
-          const imgRes = await fetch('/api/image', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, mode: 'edit', srcImageUrl: boardDataUrl }),
-          });
+          const ctrl = new AbortController();
+          const timeoutId = setTimeout(() => ctrl.abort(), 60000);
+          let imgRes: Response;
+          try {
+            imgRes = await fetch('/api/image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt, mode: 'edit', srcImageUrl: boardDataUrl }),
+              signal: ctrl.signal,
+            });
+          } catch (err) {
+            if ((err as any).name === 'AbortError') throw new Error('Image generation timeout');
+            throw err;
+          } finally {
+            clearTimeout(timeoutId);
+          }
           const { imageUrl } = await imgRes.json();
           setResult({ imageUrl, prompt });
         } else {
@@ -86,7 +108,7 @@ export function useBoardGenerate() {
         throw new Error('AI did not return function_call');
       }
     } catch (e: any) {
-      setError(e.message || 'Unknown error');
+      setError(e?.message || 'Unknown error');
     } finally {
       setLoading(false);
     }
