@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import lottieWeb from 'lottie-web';
 
-interface PreviewPaneProps { imageUrl?: string | null; }
+interface PreviewPaneProps {
+  imageUrl?: string | null;
+  loading?: boolean;
+}
 
-export function PreviewPane({ imageUrl }: PreviewPaneProps) {
+export function PreviewPane({ imageUrl, loading = false }: PreviewPaneProps) {
   const [size, setSize] = useState(6); // cm
 
   return (
@@ -10,12 +14,13 @@ export function PreviewPane({ imageUrl }: PreviewPaneProps) {
       <h2 className="text-xl font-semibold mb-4">Preview</h2>
 
       {/* Image preview */}
-      <div className="w-full aspect-square bg-gray-100 border rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+      <div className="w-full aspect-square bg-gray-100 border rounded-lg flex items-center justify-center mb-4 overflow-hidden relative">
         {imageUrl ? (
           <img src={imageUrl} alt="preview" className="object-contain w-full h-full" />
         ) : (
           <img src="https://placehold.co/300x300?text=Sketch" alt="placeholder" className="object-contain w-full h-full" />
         )}
+        {loading && <LoadingOverlay />}
       </div>
 
       {/* Size control */}
@@ -46,6 +51,26 @@ export function PreviewPane({ imageUrl }: PreviewPaneProps) {
       >
         Order Now
       </button>
+    </div>
+  );
+}
+
+function LoadingOverlay() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const anim = lottieWeb.loadAnimation({
+      container: ref.current,
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: '/Animation - loading.json',
+    });
+    return () => anim.destroy();
+  }, []);
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+      <div ref={ref} className="w-24 h-24" />
     </div>
   );
 }

@@ -18,6 +18,8 @@ interface ImageRequestBody {
 export async function POST(request: Request) {
   try {
     const { prompt, srcImageUrl, mode = 'generate' } = (await request.json()) as ImageRequestBody;
+    // Log the prompt for debugging/traceability
+    console.log('[IMAGE] GPT image prompt:', prompt);
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt required' }), {
         status: 400,

@@ -15,8 +15,8 @@ const STYLE_OPTIONS: StyleOption[] = [
   { id: 'warhammer', name: 'Warhammer', img: '/Style_img/Warhammer Style.png' },
 ];
 
-interface CanvasPaneProps { onGenerated?: (url: string) => void; }
-export function CanvasPane({ onGenerated }: CanvasPaneProps) {
+interface CanvasPaneProps { onGenerated?: (url: string) => void; onLoadingChange?: (loading:boolean)=>void; }
+export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
@@ -31,6 +31,9 @@ export function CanvasPane({ onGenerated }: CanvasPaneProps) {
   useEffect(() => {
     if (result?.imageUrl && onGenerated) onGenerated(result.imageUrl);
   }, [result, onGenerated]);
+
+  // report loading state
+  useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
 
   const toggleStyle = (id: string) => {
     setSelectedStyles(prev => {
