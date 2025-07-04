@@ -90,7 +90,7 @@ Analyse the visual layout, colours, shapes, and any sketches. Then decide:\n- If
 
     // Request the chat completion from Aimixhub
     const response = await openai.chat.completions.create({
-      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o-vision-mini' : 'gpt-4.1-mini',
+      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o' : 'gpt-4.1-mini',
       function_call: 'auto',
       functions: [
         {
