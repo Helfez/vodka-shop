@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import lottieWeb from 'lottie-web';
+import ShopifyBuyButton from './ShopifyBuyButton.tsx';
 
 interface PreviewPaneProps {
   imageUrl?: string | null;
@@ -41,16 +42,8 @@ export function PreviewPane({ imageUrl, loading = false }: PreviewPaneProps) {
         </div>
       </div>
 
-      {/* Price placeholder */}
-      <div className="text-3xl font-bold mb-4">$49.00</div>
-
-      {/* Order button (disabled for now) */}
-      <button
-        disabled
-        className="w-full py-2 rounded-md bg-gradient-to-b from-sky-300 to-sky-400 text-white font-medium disabled:opacity-60"
-      >
-        Order Now
-      </button>
+      {/* Shopify buy button */}
+      <ShopifyBuyButton />
     </div>
   );
 }
