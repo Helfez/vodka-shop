@@ -61,11 +61,13 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
         });
 
         // Listen for checkout and append image URL as note param
-        ui.on('checkout', (payload: any) => {
-          if (!imageUrl) return; // nothing to attach
-          const url = new URL(payload.checkout.webUrl);
-          url.searchParams.append('note', imageUrl);
-          window.location.href = url.toString();
+        ui.on('checkout', async (payload: any) => {
+          if (!imageUrl) return;
+          try {
+            await client.checkout.updateAttributes(payload.checkout.id, { note: imageUrl });
+          } catch (e) {
+            console.warn('Failed to attach note', e);
+          }
         });
       });
     });
