@@ -81,7 +81,21 @@ export function useBoardGenerate() {
             clearTimeout(timeoutId);
           }
           const { imageUrl } = await imgRes.json();
-          setResult({ imageUrl, prompt });
+          let finalUrl = imageUrl;
+          try {
+            const upRes = await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageUrl }),
+            });
+            if (upRes.ok) {
+              const { secureUrl } = await upRes.json();
+              if (secureUrl) finalUrl = secureUrl;
+            }
+          } catch (err) {
+            console.warn('Cloudinary upload failed', err);
+          }
+          setResult({ imageUrl: finalUrl, prompt });
         } else if (name === 'edit_image') {
           const ctrl = new AbortController();
           const timeoutId = setTimeout(() => ctrl.abort(), 60000);
@@ -100,7 +114,21 @@ export function useBoardGenerate() {
             clearTimeout(timeoutId);
           }
           const { imageUrl } = await imgRes.json();
-          setResult({ imageUrl, prompt });
+          let finalUrl = imageUrl;
+          try {
+            const upRes = await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ imageUrl }),
+            });
+            if (upRes.ok) {
+              const { secureUrl } = await upRes.json();
+              if (secureUrl) finalUrl = secureUrl;
+            }
+          } catch (err) {
+            console.warn('Cloudinary upload failed', err);
+          }
+          setResult({ imageUrl: finalUrl, prompt });
         } else {
           throw new Error('Unknown function');
         }

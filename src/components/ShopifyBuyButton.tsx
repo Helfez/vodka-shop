@@ -22,9 +22,11 @@ function loadShopifySdk(): Promise<void> {
 interface ShopifyBuyButtonProps {
   /** HTML id for the container element. Leave default unless multiple buttons rendered. */
   containerId?: string;
+  /** Generated image URL to attach to checkout */
+  imageUrl?: string | null;
 }
 
-export default function ShopifyBuyButton({ containerId = 'shopify-product-9720675664174' }: ShopifyBuyButtonProps) {
+export default function ShopifyBuyButton({ containerId = 'shopify-product-9720675664174', imageUrl }: ShopifyBuyButtonProps) {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
       });
 
       ShopifyBuy.UI.onReady(client).then((ui: any) => {
-        ui.createComponent('product', {
+        const component = ui.createComponent('product', {
           id: '9720675664174',
           node: ref.current,
           moneyFormat: '%24%7B%7Bamount%7D%7D',
@@ -56,6 +58,14 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
             cart: { text: { total: 'Subtotal', button: 'Checkout' } },
             modalProduct: { text: { button: 'Add to cart' } },
           },
+        });
+
+        // Listen for checkout and append image URL as note param
+        ui.on('checkout', (payload: any) => {
+          if (!imageUrl) return; // nothing to attach
+          const url = new URL(payload.checkout.webUrl);
+          url.searchParams.append('note', imageUrl);
+          window.location.href = url.toString();
         });
       });
     });
