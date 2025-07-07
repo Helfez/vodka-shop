@@ -34,9 +34,6 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
       const ShopifyBuy = (window as any).ShopifyBuy;
       if (!ShopifyBuy?.UI) return;
 
-      // Prevent duplicate component on same node
-      if (ShopifyBuy.UI.components.some((c: any) => c.node === ref.current)) return;
-
       const client = ShopifyBuy.buildClient({
         domain: 'kysyra-xx.myshopify.com',
         storefrontAccessToken: '0e5cc034d0584eddc19ae6c1fbe1c937',
