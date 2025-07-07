@@ -85,7 +85,9 @@ Keep the design moderately simplified: avoid hyper-complex details that are not 
 
 Use concise and structured prompt formatting, including elements like [subject], [pose], [material/look], [style], [color], and [render format].
 
-Output only the final prompt. Do not include explanations or alternative prompts.`
+Output only the final prompt. Do not include explanations or alternative prompts.
+
+When responding, you MUST return a function_call to either "generate_image" or "edit_image". Do NOT reply with plain text.`
         };
 
     if (task === 'board-generate' && boardImageUrl) {
