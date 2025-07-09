@@ -22,6 +22,12 @@ export function PreviewPane({ imageUrl, loading = false }: PreviewPaneProps) {
           <img src="https://placehold.co/300x300?text=Sketch" alt="placeholder" className="object-contain w-full h-full" />
         )}
         {loading && <LoadingOverlay />}
+        {/* Progress bar */}
+        {loading && (
+          <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200">
+            <div className="h-full w-full bg-cyan-500 animate-pulse" />
+          </div>
+        )}
       </div>
 
       {/* Size control */}
@@ -43,7 +49,11 @@ export function PreviewPane({ imageUrl, loading = false }: PreviewPaneProps) {
       </div>
 
       {/* Shopify buy button */}
-      <ShopifyBuyButton />
+      {imageUrl && !loading ? (
+        <ShopifyBuyButton imageUrl={imageUrl} />
+      ) : (
+        <button disabled className="w-full py-3 bg-gray-400 text-white rounded opacity-60 cursor-not-allowed">Buy now</button>
+      )}
     </div>
   );
 }

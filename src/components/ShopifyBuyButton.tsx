@@ -50,6 +50,10 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
             product: {
               buttonDestination: 'checkout',
               text: { button: 'Buy now' },
+              contents: {
+                img: false,
+                imgWithCarousel: false,
+              },
               styles: {
                 title: { color: '#cc7070', fontSize: '19px', fontWeight: 'normal' },
                 product: { textAlign: 'left' },
