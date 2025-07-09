@@ -8,7 +8,7 @@ import KontextChat from './components/KontextChat';
 // @ts-ignore vite handles ts extension
 import AiChat from './pages/AiChat';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
 import LoadingScreen from './components/LoadingScreen';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -16,6 +16,12 @@ import AuthButtons from './components/AuthButtons.tsx';
 
 function App() {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      // Redirect immediately to Auth0 Universal Login
+      loginWithRedirect();
+    }
+  }, [isLoading, isAuthenticated, loginWithRedirect]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   if (typeof window !== 'undefined') {
@@ -29,17 +35,8 @@ if (path.startsWith('/ai')) return <AiChat />;
   if (isLoading) return null;
 
   if (!isAuthenticated) {
-    return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4 bg-gray-100">
-        <h1 className="text-2xl font-semibold">Vodka Shop</h1>
-        <button
-          onClick={() => loginWithRedirect()}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Login / Register
-        </button>
-      </div>
-    );
+    // While redirecting, render nothing or a placeholder
+    return null;
   }
 
   if (!loaded) {
