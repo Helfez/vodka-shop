@@ -11,8 +11,11 @@ import AiChat from './pages/AiChat';
 import { useState } from 'react';
 // @ts-ignore vite handles ts extension
 import LoadingScreen from './components/LoadingScreen';
+import { useAuth0 } from '@auth0/auth0-react';
+import AuthButtons from './components/AuthButtons.tsx';
 
 function App() {
+  const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0();
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   if (typeof window !== 'undefined') {
@@ -23,12 +26,32 @@ if (path.startsWith('/ai')) return <AiChat />;
   }
   const [loaded, setLoaded] = useState(false);
 
+  if (isLoading) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center gap-4 bg-gray-100">
+        <h1 className="text-2xl font-semibold">Vodka Shop</h1>
+        <button
+          onClick={() => loginWithRedirect()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Login / Register
+        </button>
+      </div>
+    );
+  }
+
   if (!loaded) {
     return <LoadingScreen onFinish={() => setLoaded(true)} />;
   }
 
   return (
-    <div className="w-screen h-screen bg-gray-100 p-4 font-sans flex items-center justify-center">
+    <div className="w-screen h-screen bg-gray-100 p-4 font-sans flex flex-col"> 
+      <header className="flex justify-end mb-2">
+        <AuthButtons />
+      </header>
+      <div className="flex-grow flex items-center justify-center">
       <div className="w-full h-full max-h-[90vh] bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden grid grid-cols-12 gap-0">
 
         {/* Left – Chat */}
@@ -48,8 +71,8 @@ if (path.startsWith('/ai')) return <AiChat />;
           <PreviewPane imageUrl={previewUrl} loading={generating} />
         </div>
       </div>
-    </div>
-  );
+          </div>
+  </div> );
 }
 
 export default App;
