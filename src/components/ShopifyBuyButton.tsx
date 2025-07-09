@@ -55,8 +55,16 @@ export default function ShopifyBuyButton({ containerId = 'shopify-product-972067
                 imgWithCarousel: false,
               },
               styles: {
-                title: { color: '#cc7070', fontSize: '19px', fontWeight: 'normal' },
-                product: { textAlign: 'left' },
+                title: { display:'none' },
+                product: { textAlign: 'center' },
+                button: {
+                  'background-color': '#06b6d4',
+                  'border-radius': '8px',
+                  ':hover': { 'background-color': '#0891b2' },
+                  'font-family': 'inherit',
+                  'font-weight': '600',
+                },
+                price: { 'color': '#334155', 'font-size': '14px' },
               },
             },
             cart: { text: { total: 'Subtotal', button: 'Checkout' } },

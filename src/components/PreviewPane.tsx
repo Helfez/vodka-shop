@@ -23,11 +23,7 @@ export function PreviewPane({ imageUrl, loading = false }: PreviewPaneProps) {
         )}
         {loading && <LoadingOverlay />}
         {/* Progress bar */}
-        {loading && (
-          <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200">
-            <div className="h-full w-full bg-cyan-500 animate-pulse" />
-          </div>
-        )}
+        {loading && <div className="loading-bar" />}
       </div>
 
       {/* Size control */}

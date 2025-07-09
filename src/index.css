@@ -52,6 +52,21 @@
 }
 
 
+/* Loading bar animation */
+@keyframes slideBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+.loading-bar {
+  @apply absolute bottom-0 left-0 right-0 h-1 overflow-hidden bg-cyan-100;
+}
+.loading-bar::before {
+  content: "";
+  @apply absolute inset-y-0 w-1/2 bg-cyan-500;
+  animation: slideBar 1.2s ease-in-out infinite;
+}
+
 /* Custom scrollbar for a cleaner look */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
