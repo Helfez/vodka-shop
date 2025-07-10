@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import * as fabric from 'fabric';
 import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 
@@ -23,6 +24,23 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('pencil');
   // style selection state: default first option checked
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
+
+  /* ---------------- Undo / Redo history ---------------- */
+  const [history, setHistory] = useState<string[]>([]); // compressed snapshots
+  const [pointer, setPointer] = useState(0);
+  const ignoreRef = useRef(false);
+
+  const saveHistory = useCallback(() => {
+    if (!canvas || ignoreRef.current) return;
+    const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
+    setHistory(prev => {
+      const trimmed = [...prev.slice(0, pointer + 1), json];
+      // cap to 20 entries
+      if (trimmed.length > 20) trimmed.shift();
+      return trimmed;
+    });
+    setPointer(p => Math.min(p + 1, 19));
+  }, [canvas, pointer]);
 
   // AI generation hook
   const { generate, loading, error, result } = useBoardGenerate();
@@ -74,11 +92,69 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     window.addEventListener('resize', resizeCanvas);
 
     setCanvas(fabricCanvas);
+      // save initial snapshot
+      ignoreRef.current = true;
+      setHistory([compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))]);
+      setPointer(0);
+      ignoreRef.current = false;
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
     };
+      // bind change events for history
   }, []);
+
+  // bind fabric events to save history when canvas changes
+  useEffect(() => {
+    if (!canvas) return;
+    const handler = () => saveHistory();
+    const events = ['object:added', 'object:modified', 'object:removed', 'path:created'];
+    events.forEach(ev => canvas.on(ev as any, handler));
+    return () => {
+      events.forEach(ev => canvas.off(ev as any, handler));
+    };
+  }, [canvas, saveHistory]);
+
+  // Undo / Redo helpers
+  const canUndo = pointer > 0;
+  const canRedo = pointer < history.length - 1;
+
+  const undo = useCallback(() => {
+    if (!canvas || !canUndo) return;
+    ignoreRef.current = true;
+    const json = decompressFromUTF16(history[pointer - 1]);
+    canvas.loadFromJSON(json as any, () => {
+      canvas.renderAll();
+      setPointer(p => p - 1);
+      ignoreRef.current = false;
+    });
+  }, [canvas, canUndo, history, pointer]);
+
+  const redo = useCallback(() => {
+    if (!canvas || !canRedo) return;
+    ignoreRef.current = true;
+    const json = decompressFromUTF16(history[pointer + 1]);
+    canvas.loadFromJSON(json as any, () => {
+      canvas.renderAll();
+      setPointer(p => p + 1);
+      ignoreRef.current = false;
+    });
+  }, [canvas, canRedo, history, pointer]);
+
+  // global keyboard shortcuts
+  useEffect(() => {
+    const keyHandler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undo();
+      } else if (((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y')) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', keyHandler);
+    return () => window.removeEventListener('keydown', keyHandler);
+  }, [undo, redo]);
 
   // Sync tool changes
   useEffect(() => {
@@ -160,6 +236,19 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         >
           🖱️
         </button>
+
+        {/* Undo / Redo buttons */}
+        <button
+          className="ghost-btn bg-white text-gray-700 disabled:opacity-40"
+          onClick={undo}
+          disabled={!canUndo}
+        >↶ Undo</button>
+        <button
+          className="ghost-btn bg-white text-gray-700 disabled:opacity-40"
+          onClick={redo}
+          disabled={!canRedo}
+        >↻ Redo</button>
+
             {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
       {result && (
         <div className="text-green-600 text-sm mt-1">Generated!</div>
