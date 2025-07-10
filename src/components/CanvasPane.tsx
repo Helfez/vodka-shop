@@ -28,18 +28,23 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   /* ---------------- Undo / Redo history ---------------- */
   const [history, setHistory] = useState<string[]>([]); // compressed snapshots
   const [pointer, setPointer] = useState(0);
+  const pointerRef = useRef(0);
   const ignoreRef = useRef(false);
 
   const saveHistory = useCallback(() => {
     if (!canvas || ignoreRef.current) return;
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     setHistory(prev => {
-      const trimmed = [...prev.slice(0, pointer + 1), json];
+      const trimmed = [...prev.slice(0, pointerRef.current + 1), json];
       // cap to 20 entries
       if (trimmed.length > 20) trimmed.shift();
       return trimmed;
     });
-    setPointer(p => Math.min(p + 1, 19));
+    setPointer(p => {
+      const next = Math.min(p + 1, 19);
+      pointerRef.current = next;
+      return next;
+    });
   }, [canvas, pointer]);
 
   // AI generation hook
@@ -96,7 +101,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       ignoreRef.current = true;
       setHistory([compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))]);
       setPointer(0);
-      ignoreRef.current = false;
+      setTimeout(() => { ignoreRef.current = false; }, 0);
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
@@ -116,8 +121,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   }, [canvas, saveHistory]);
 
   // Undo / Redo helpers
-  const canUndo = pointer > 0;
-  const canRedo = pointer < history.length - 1;
+  const canUndo = pointerRef.current > 0;
+  const canRedo = pointerRef.current < history.length - 1;
 
   const undo = useCallback(() => {
     if (!canvas || !canUndo) return;
@@ -125,8 +130,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const json = decompressFromUTF16(history[pointer - 1]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
-      setPointer(p => p - 1);
-      ignoreRef.current = false;
+      setPointer(p => {
+        const nxt = p - 1;
+        pointerRef.current = nxt;
+        return nxt;
+      });
+      setTimeout(() => { ignoreRef.current = false; }, 0);
     });
   }, [canvas, canUndo, history, pointer]);
 
@@ -136,8 +145,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const json = decompressFromUTF16(history[pointer + 1]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
-      setPointer(p => p + 1);
-      ignoreRef.current = false;
+      setPointer(p => {
+        const nxt = p + 1;
+        pointerRef.current = nxt;
+        return nxt;
+      });
+      setTimeout(() => { ignoreRef.current = false; }, 0);
     });
   }, [canvas, canRedo, history, pointer]);
 
