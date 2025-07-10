@@ -32,9 +32,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const ignoreRef = useRef(false);
 
   const saveHistory = useCallback(() => {
+    if (!canvas) return;
+    console.debug('saveHistory called', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || ignoreRef.current) return;
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     setHistory(prev => {
+      console.debug('trim history, prevLen', prev.length);
       const trimmed = [...prev.slice(0, pointerRef.current + 1), json];
       // cap to 20 entries
       if (trimmed.length > 20) trimmed.shift();
@@ -125,6 +128,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const canRedo = pointerRef.current < history.length - 1;
 
   const undo = useCallback(() => {
+    console.debug('UNDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canUndo) return;
     ignoreRef.current = true;
     const json = decompressFromUTF16(history[pointer - 1]);
@@ -140,6 +144,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   }, [canvas, canUndo, history, pointer]);
 
   const redo = useCallback(() => {
+    console.debug('REDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canRedo) return;
     ignoreRef.current = true;
     const json = decompressFromUTF16(history[pointer + 1]);
