@@ -101,7 +101,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       canvas.add(itext);
       canvas.setActiveObject(itext);
       canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
+      canvas.forEachObject(obj => obj.setCoords());
+      canvas.requestRenderAll();
       saveHistory();
     }
     closeContextMenu();
@@ -129,7 +130,9 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         const { width, height } = containerRef.current.getBoundingClientRect();
         fabricCanvas.setWidth(width);
         fabricCanvas.setHeight(height);
-        fabricCanvas.renderAll();
+        fabricCanvas.setViewportTransform([1,0,0,1,0,0]);
+        fabricCanvas.forEachObject(obj => obj.setCoords());
+        fabricCanvas.requestRenderAll();
       }
     };
     resizeCanvas();
@@ -184,7 +187,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       ignoreRef.current = false;
       console.log('after load objects', canvas.getObjects().length);
       canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
+      canvas.forEachObject(obj => obj.setCoords());
+      canvas.requestRenderAll();
       setPointer(() => {
         const nxt = idx;
         pointerRef.current = nxt;
@@ -226,7 +230,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       }
     }
     canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
+    canvas.forEachObject(obj => obj.setCoords());
+    canvas.requestRenderAll();
   }, [activeTool, canvas]);
 
   // keep canvas width and height in sync with container element
@@ -238,7 +243,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         canvas.setWidth(cr.width);
         canvas.setHeight(cr.height);
         canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
+        canvas.forEachObject(obj => obj.setCoords());
+        canvas.requestRenderAll();
       }
     });
     obs.observe(containerRef.current);
@@ -258,7 +264,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         (canvas as any).centerObject?.(img);
         (canvas as any).setActiveObject?.(img);
         canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
+        canvas.forEachObject(obj => obj.setCoords());
+        canvas.requestRenderAll();
       });
     };
     reader.readAsDataURL(file);
