@@ -100,6 +100,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       const itext = new fabric.IText(text, { left, top, fontSize: 24, fill: '#000' });
       canvas.add(itext);
       canvas.setActiveObject(itext);
+      canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.renderAll();
       saveHistory();
     }
@@ -179,6 +180,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     canvas.loadFromJSON(json as any, () => {
       ignoreRef.current = false;
       console.log('after load objects', canvas.getObjects().length);
+      canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.renderAll();
       setPointer(() => {
         const nxt = idx;
@@ -201,6 +203,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     canvas.loadFromJSON(json as any, () => {
       ignoreRef.current = false;
       console.log('after load objects', canvas.getObjects().length);
+      canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.renderAll();
       setPointer(() => {
         const nxt = idx;
@@ -245,7 +248,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         (canvas as any).setActiveObject?.(textbox);
       }
     }
-    canvas.renderAll();
+    canvas.setViewportTransform([1,0,0,1,0,0]);
+      canvas.renderAll();
   }, [activeTool, canvas]);
 
   // keep canvas width and height in sync with container element
@@ -256,7 +260,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         const cr = entry.contentRect;
         canvas.setWidth(cr.width);
         canvas.setHeight(cr.height);
-        canvas.renderAll();
+        canvas.setViewportTransform([1,0,0,1,0,0]);
+      canvas.renderAll();
       }
     });
     obs.observe(containerRef.current);
@@ -275,7 +280,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         canvas.add(img);
         (canvas as any).centerObject?.(img);
         (canvas as any).setActiveObject?.(img);
-        canvas.renderAll();
+        canvas.setViewportTransform([1,0,0,1,0,0]);
+      canvas.renderAll();
       });
     };
     reader.readAsDataURL(file);
