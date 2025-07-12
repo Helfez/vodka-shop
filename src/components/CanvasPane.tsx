@@ -38,16 +38,13 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     setHistory(prev => {
       console.log('trim history, prevLen', prev.length);
-      const trimmed = [...prev.slice(0, pointerRef.current + 1), json];
-      // cap to 20 entries
-      if (trimmed.length > 20) trimmed.shift();
-      return trimmed;
+      const base = prev.slice(0, pointerRef.current + 1); // drop future
+      let newHist = [...base, json];
+      if (newHist.length > 20) newHist = newHist.slice(newHist.length - 20);
+      pointerRef.current = newHist.length - 1;
+      return newHist;
     });
-    setPointer(p => {
-      const next = Math.min(p + 1, 19);
-      pointerRef.current = next;
-      return next;
-    });
+    setPointer(pointerRef.current);
   }, [canvas, pointer]);
 
   // AI generation hook
