@@ -34,11 +34,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
   const saveHistory = useCallback(() => {
     if (!canvas) return;
-    console.log('saveHistory called', { pointer: pointerRef.current, historyLen: historyRef.current.length });
-    if (!canvas) return;
     if (ignoreRef.current) return;
-    const objCount = canvas.getObjects().length;
-    console.log('saveHistory objects', objCount);
+
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     const base = historyRef.current.slice(0, pointerRef.current + 1);
     let newHist = [...base, json];
