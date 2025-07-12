@@ -33,11 +33,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
   const saveHistory = useCallback(() => {
     if (!canvas) return;
-    console.debug('saveHistory called', { pointer: pointerRef.current, historyLen: history.length });
+    console.log('saveHistory called', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || ignoreRef.current) return;
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     setHistory(prev => {
-      console.debug('trim history, prevLen', prev.length);
+      console.log('trim history, prevLen', prev.length);
       const trimmed = [...prev.slice(0, pointerRef.current + 1), json];
       // cap to 20 entries
       if (trimmed.length > 20) trimmed.shift();
@@ -104,7 +104,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       ignoreRef.current = true;
       setHistory([compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))]);
       setPointer(0);
-      setTimeout(() => { ignoreRef.current = false; }, 0);
+      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
@@ -117,6 +117,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     if (!canvas) return;
     const handler = () => saveHistory();
     const events = ['object:added', 'object:modified', 'object:removed', 'path:created'];
+    events.forEach(ev=>canvas.on(ev as any, ()=>console.log('fabric event', ev)) );
     events.forEach(ev => canvas.on(ev as any, handler));
     return () => {
       events.forEach(ev => canvas.off(ev as any, handler));
@@ -128,7 +129,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const canRedo = pointerRef.current < history.length - 1;
 
   const undo = useCallback(() => {
-    console.debug('UNDO pressed', { pointer: pointerRef.current, historyLen: history.length });
+    console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canUndo) return;
     ignoreRef.current = true;
     const json = decompressFromUTF16(history[pointer - 1]);
@@ -139,12 +140,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      setTimeout(() => { ignoreRef.current = false; }, 0);
+      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
     });
   }, [canvas, canUndo, history, pointer]);
 
   const redo = useCallback(() => {
-    console.debug('REDO pressed', { pointer: pointerRef.current, historyLen: history.length });
+    console.log('REDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canRedo) return;
     ignoreRef.current = true;
     const json = decompressFromUTF16(history[pointer + 1]);
@@ -155,7 +156,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      setTimeout(() => { ignoreRef.current = false; }, 0);
+      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
     });
   }, [canvas, canRedo, history, pointer]);
 
