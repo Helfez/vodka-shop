@@ -35,6 +35,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     if (!canvas) return;
     console.log('saveHistory called', { pointer: pointerRef.current, historyLen: historyRef.current.length });
     if (!canvas) return;
+    const objCount = canvas.getObjects().length;
+    console.log('saveHistory objects', objCount);
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     const base = historyRef.current.slice(0, pointerRef.current + 1);
     let newHist = [...base, json];
@@ -145,12 +147,19 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       // bind change events for history
   }, []);
 
-  // save snapshot at end of user action
+  // save snapshot on finalized changes: completed drawings and non-drawing additions
   useEffect(() => {
     if (!canvas) return;
-    const handler = () => saveHistory();
-    canvas.on('mouse:up', handler as any);
-    return () => canvas.off('mouse:up', handler as any);
+    const handlePath = () => saveHistory();
+    const handleAdded = (e: any) => {
+      if (e?.target?.type !== 'path') saveHistory();
+    };
+    canvas.on('path:created', handlePath);
+    canvas.on('object:added', handleAdded);
+    return () => {
+      canvas.off('path:created', handlePath);
+      canvas.off('object:added', handleAdded);
+    };
   }, [canvas, saveHistory]);
 
   // Undo / Redo helpers
