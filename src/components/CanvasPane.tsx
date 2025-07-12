@@ -159,15 +159,18 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     };
     canvas.on('path:created', handlePath);
     canvas.on('object:added', handleAdded);
+    canvas.on('object:modified', handleAdded);
+    canvas.on('object:removed', () => saveHistory());
     return () => {
       canvas.off('path:created', handlePath);
       canvas.off('object:added', handleAdded);
+      canvas.off('object:modified', handleAdded);
+      canvas.off('object:removed', () => saveHistory());
     };
   }, [canvas, saveHistory]);
 
-  // Undo / Redo helpers
+  // Undo helpers
   const canUndo = pointerRef.current > 0;
-  const canRedo = pointerRef.current < historyRef.current.length - 1;
 
   const undo = useCallback(() => {
     console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
@@ -192,43 +195,17 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     });
   }, [canvas, canUndo]);
 
-  const redo = useCallback(() => {
-    console.log('REDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
-    if (!canvas || pointerRef.current>=historyRef.current.length-1) return;
-    
-    const idx = pointerRef.current + 1;
-    if (idx >= historyRef.current.length) return;
-    const json = decompressFromUTF16(historyRef.current[idx]);
-    ignoreRef.current = true;
-    canvas.loadFromJSON(json as any, () => {
-      ignoreRef.current = false;
-      console.log('after load objects', canvas.getObjects().length);
-      canvas.setViewportTransform([1,0,0,1,0,0]);
-      canvas.renderAll();
-      setPointer(() => {
-        const nxt = idx;
-        pointerRef.current = nxt;
-        return nxt;
-      });
-      const release = () => {  console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
-      canvas?.on('mouse:down', release);
-    });
-  }, [canvas, canRedo]);
-
-  // global keyboard shortcuts
+  // global keyboard shortcut for Undo only
   useEffect(() => {
     const keyHandler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         undo();
-      } else if (((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'z') || ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y')) {
-        e.preventDefault();
-        redo();
       }
     };
     window.addEventListener('keydown', keyHandler);
     return () => window.removeEventListener('keydown', keyHandler);
-  }, [undo, redo]);
+  }, [undo]);
 
   // Sync tool changes
   useEffect(() => {
@@ -314,19 +291,14 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
           🖱️
         </button>
 
-        {/* Undo / Redo buttons */}
+        {/* Undo button */}
         <button
           className="ghost-btn bg-white text-gray-700 disabled:opacity-40"
           onClick={undo}
-          disabled={!canUndo}
+          disabled={pointerRef.current <= 0}
         >↶ Undo</button>
-        <button
-          className="ghost-btn bg-white text-gray-700 disabled:opacity-40"
-          onClick={redo}
-          disabled={!canRedo}
-        >↻ Redo</button>
 
-            {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
+          {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
       {result && (
         <div className="text-green-600 text-sm mt-1">Generated!</div>
       )}
@@ -384,7 +356,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
             <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={menuUpload}>📷 Upload Image</li>
             <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={menuAddText}>T Add Text</li>
             <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={() => { undo(); closeContextMenu(); }}>↶ Undo</li>
-            <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={() => { redo(); closeContextMenu(); }}>↻ Redo</li>
           </ul>
         )}
         <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
