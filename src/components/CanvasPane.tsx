@@ -71,6 +71,42 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     });
   };
 
+  // ---------------- Context Menu ----------------
+  const [contextMenu, setContextMenu] = useState<{x:number;y:number;visible:boolean}>({x:0,y:0,visible:false});
+  const fileInputRef = useRef<HTMLInputElement|null>(null);
+
+  const openContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, visible: true });
+  };
+  const closeContextMenu = () => setContextMenu(v => ({ ...v, visible: false }));
+
+  useEffect(() => {
+    const handler = () => closeContextMenu();
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, []);
+
+  const menuUpload = () => {
+    fileInputRef.current?.click();
+    closeContextMenu();
+  };
+  const menuAddText = () => {
+    if (!canvas) return;
+    const text = window.prompt('Enter text');
+    if (text) {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      const left = contextMenu.x - (rect?.left ?? 0);
+      const top = contextMenu.y - (rect?.top ?? 0);
+      const itext = new fabric.IText(text, { left, top, fontSize: 24, fill: '#000' });
+      canvas.add(itext);
+      canvas.setActiveObject(itext);
+      canvas.renderAll();
+      saveHistory();
+    }
+    closeContextMenu();
+  };
+
   const maxChosen = selectedStyles.length >= 2;
 
   // Initialise Fabric.js once
@@ -313,9 +349,23 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       {/* Canvas */}
       <div
         ref={containerRef}
+        onContextMenu={openContextMenu}
         className="flex-grow mb-4 border border-gray-300 rounded-lg overflow-hidden bg-white relative"
       >
         <canvas ref={canvasRef} className="w-full h-full block" style={{ height: '100%', width: '100%' }} />
+        {contextMenu.visible && (
+          <ul
+            className="absolute bg-white border rounded shadow-md z-50 text-sm"
+            style={{ left: contextMenu.x, top: contextMenu.y }}
+            onContextMenu={e => e.preventDefault()}
+          >
+            <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={menuUpload}>📷 Upload Image</li>
+            <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={menuAddText}>T Add Text</li>
+            <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={() => { undo(); closeContextMenu(); }}>↶ Undo</li>
+            <li className="px-3 py-1 hover:bg-gray-100 cursor-pointer" onClick={() => { redo(); closeContextMenu(); }}>↻ Redo</li>
+          </ul>
+        )}
+        <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
       </div>
     </div>
   );
