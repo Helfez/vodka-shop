@@ -168,33 +168,37 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canUndo) return;
     ignoreRef.current = true;
-    const json = decompressFromUTF16(history[pointer - 1]);
+    const idx = pointerRef.current - 1;
+    if (idx < 0) return;
+    const json = decompressFromUTF16(history[idx]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
-      setPointer(p => {
-        const nxt = p - 1;
+      setPointer(() => {
+        const nxt = idx;
         pointerRef.current = nxt;
         return nxt;
       });
       setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
     });
-  }, [canvas, canUndo, history, pointer]);
+  }, [canvas, canUndo, history]);
 
   const redo = useCallback(() => {
     console.log('REDO pressed', { pointer: pointerRef.current, historyLen: history.length });
     if (!canvas || !canRedo) return;
     ignoreRef.current = true;
-    const json = decompressFromUTF16(history[pointer + 1]);
+    const idx = pointerRef.current + 1;
+    if (idx >= history.length) return;
+    const json = decompressFromUTF16(history[idx]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
-      setPointer(p => {
-        const nxt = p + 1;
+      setPointer(() => {
+        const nxt = idx;
         pointerRef.current = nxt;
         return nxt;
       });
       setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
     });
-  }, [canvas, canRedo, history, pointer]);
+  }, [canvas, canRedo, history]);
 
   // global keyboard shortcuts
   useEffect(() => {
@@ -370,5 +374,3 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     </div>
   );
 }
-
-
