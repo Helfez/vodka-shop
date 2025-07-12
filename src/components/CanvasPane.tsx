@@ -185,7 +185,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     ignoreRef.current = true;
     canvas.loadFromJSON(json as any, () => {
       ignoreRef.current = false;
-      console.log('after load objects', canvas.getObjects().length);
+      const objs = canvas.getObjects();
+      console.log('after load objects', objs.length, objs.map(o => ({type:o.type,left:o.left,top:o.top,width:o.width,height:o.height,visible:o.visible})) );
       canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.forEachObject(obj => obj.setCoords());
       canvas.requestRenderAll();
