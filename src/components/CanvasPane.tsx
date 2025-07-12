@@ -27,6 +27,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
   /* ---------------- Undo / Redo history ---------------- */
   const historyRef = useRef<string[]>([]);
+  const ignoreRef = useRef(false);
   const [pointer, setPointer] = useState(0);
   const pointerRef = useRef(0);
   
@@ -35,6 +36,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     if (!canvas) return;
     console.log('saveHistory called', { pointer: pointerRef.current, historyLen: historyRef.current.length });
     if (!canvas) return;
+    if (ignoreRef.current) return;
     const objCount = canvas.getObjects().length;
     console.log('saveHistory objects', objCount);
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
@@ -173,7 +175,10 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const idx = pointerRef.current - 1;
     if (idx < 0) return;
     const json = decompressFromUTF16(historyRef.current[idx]);
+    ignoreRef.current = true;
     canvas.loadFromJSON(json as any, () => {
+      ignoreRef.current = false;
+      console.log('after load objects', canvas.getObjects().length);
       canvas.renderAll();
       setPointer(() => {
         const nxt = idx;
@@ -192,7 +197,10 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const idx = pointerRef.current + 1;
     if (idx >= historyRef.current.length) return;
     const json = decompressFromUTF16(historyRef.current[idx]);
+    ignoreRef.current = true;
     canvas.loadFromJSON(json as any, () => {
+      ignoreRef.current = false;
+      console.log('after load objects', canvas.getObjects().length);
       canvas.renderAll();
       setPointer(() => {
         const nxt = idx;
