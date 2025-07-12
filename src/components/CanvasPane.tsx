@@ -140,7 +140,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       ignoreRef.current = true;
       setHistory([compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))]);
       setPointer(0);
-      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
+      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      canvas?.on('mouse:down', release);
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
@@ -178,7 +179,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
+      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      canvas?.on('mouse:down', release);
     });
   }, [canvas, canUndo, history]);
 
@@ -196,7 +198,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      setTimeout(() => { ignoreRef.current = false; console.log('history recording re-enabled'); }, 50);
+      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      canvas?.on('mouse:down', release);
     });
   }, [canvas, canRedo, history]);
 
