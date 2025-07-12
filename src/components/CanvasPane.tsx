@@ -29,12 +29,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const historyRef = useRef<string[]>([]);
   const [pointer, setPointer] = useState(0);
   const pointerRef = useRef(0);
-  const ignoreRef = useRef(false);
+  
 
   const saveHistory = useCallback(() => {
     if (!canvas) return;
     console.log('saveHistory called', { pointer: pointerRef.current, historyLen: historyRef.current.length });
-    if (!canvas || ignoreRef.current) return;
+    if (!canvas) return;
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
     const base = historyRef.current.slice(0, pointerRef.current + 1);
     let newHist = [...base, json];
@@ -132,11 +132,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
     setCanvas(fabricCanvas);
       // save initial snapshot
-      ignoreRef.current = true;
+      
       historyRef.current = [compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))];
       pointerRef.current = 0;
       setPointer(0);
-      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      const release = () => {  console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
     return () => {
       window.removeEventListener('resize', resizeCanvas);
@@ -145,16 +145,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       // bind change events for history
   }, []);
 
-  // bind fabric events to save history when canvas changes
+  // save snapshot at end of user action
   useEffect(() => {
     if (!canvas) return;
     const handler = () => saveHistory();
-    const events = ['object:added', 'object:modified', 'object:removed', 'path:created'];
-    events.forEach(ev=>canvas.on(ev as any, ()=>console.log('fabric event', ev)) );
-    events.forEach(ev => canvas.on(ev as any, handler));
-    return () => {
-      events.forEach(ev => canvas.off(ev as any, handler));
-    };
+    canvas.on('mouse:up', handler as any);
+    return () => canvas.off('mouse:up', handler as any);
   }, [canvas, saveHistory]);
 
   // Undo / Redo helpers
@@ -164,7 +160,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const undo = useCallback(() => {
     console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
     if (!canvas || pointerRef.current<=0) return;
-    ignoreRef.current = true;
+    
     const idx = pointerRef.current - 1;
     if (idx < 0) return;
     const json = decompressFromUTF16(historyRef.current[idx]);
@@ -175,7 +171,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      const release = () => {  console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
     });
   }, [canvas, canUndo]);
@@ -183,7 +179,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const redo = useCallback(() => {
     console.log('REDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
     if (!canvas || pointerRef.current>=historyRef.current.length-1) return;
-    ignoreRef.current = true;
+    
     const idx = pointerRef.current + 1;
     if (idx >= historyRef.current.length) return;
     const json = decompressFromUTF16(historyRef.current[idx]);
@@ -194,7 +190,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         pointerRef.current = nxt;
         return nxt;
       });
-      const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
+      const release = () => {  console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
     });
   }, [canvas, canRedo]);
