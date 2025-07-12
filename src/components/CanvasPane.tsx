@@ -26,25 +26,23 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
 
   /* ---------------- Undo / Redo history ---------------- */
-  const [history, setHistory] = useState<string[]>([]); // compressed snapshots
+  const historyRef = useRef<string[]>([]);
   const [pointer, setPointer] = useState(0);
   const pointerRef = useRef(0);
   const ignoreRef = useRef(false);
 
   const saveHistory = useCallback(() => {
     if (!canvas) return;
-    console.log('saveHistory called', { pointer: pointerRef.current, historyLen: history.length });
+    console.log('saveHistory called', { pointer: pointerRef.current, historyLen: historyRef.current.length });
     if (!canvas || ignoreRef.current) return;
     const json = compressToUTF16(JSON.stringify(canvas.toJSON()));
-    setHistory(prev => {
-      console.log('trim history, prevLen', prev.length);
-      const base = prev.slice(0, pointerRef.current + 1); // drop future
-      let newHist = [...base, json];
-      if (newHist.length > 20) newHist = newHist.slice(newHist.length - 20);
-      pointerRef.current = newHist.length - 1;
-      return newHist;
-    });
+    const base = historyRef.current.slice(0, pointerRef.current + 1);
+    let newHist = [...base, json];
+    if (newHist.length > 20) newHist = newHist.slice(newHist.length - 20);
+    historyRef.current = newHist;
+    pointerRef.current = newHist.length -1;
     setPointer(pointerRef.current);
+    console.log('historyLen now', historyRef.current.length);
   }, [canvas, pointer]);
 
   // AI generation hook
@@ -135,7 +133,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     setCanvas(fabricCanvas);
       // save initial snapshot
       ignoreRef.current = true;
-      setHistory([compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))]);
+      historyRef.current = [compressToUTF16(JSON.stringify(fabricCanvas.toJSON()))];
+      pointerRef.current = 0;
       setPointer(0);
       const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
@@ -160,15 +159,15 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
   // Undo / Redo helpers
   const canUndo = pointerRef.current > 0;
-  const canRedo = pointerRef.current < history.length - 1;
+  const canRedo = pointerRef.current < historyRef.current.length - 1;
 
   const undo = useCallback(() => {
-    console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: history.length });
-    if (!canvas || !canUndo) return;
+    console.log('UNDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
+    if (!canvas || pointerRef.current<=0) return;
     ignoreRef.current = true;
     const idx = pointerRef.current - 1;
     if (idx < 0) return;
-    const json = decompressFromUTF16(history[idx]);
+    const json = decompressFromUTF16(historyRef.current[idx]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
       setPointer(() => {
@@ -179,15 +178,15 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
     });
-  }, [canvas, canUndo, history]);
+  }, [canvas, canUndo]);
 
   const redo = useCallback(() => {
-    console.log('REDO pressed', { pointer: pointerRef.current, historyLen: history.length });
-    if (!canvas || !canRedo) return;
+    console.log('REDO pressed', { pointer: pointerRef.current, historyLen: historyRef.current.length });
+    if (!canvas || pointerRef.current>=historyRef.current.length-1) return;
     ignoreRef.current = true;
     const idx = pointerRef.current + 1;
-    if (idx >= history.length) return;
-    const json = decompressFromUTF16(history[idx]);
+    if (idx >= historyRef.current.length) return;
+    const json = decompressFromUTF16(historyRef.current[idx]);
     canvas.loadFromJSON(json as any, () => {
       canvas.renderAll();
       setPointer(() => {
@@ -198,7 +197,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       const release = () => { ignoreRef.current = false; console.log('history recording re-enabled'); canvas?.off('mouse:down', release); };
       canvas?.on('mouse:down', release);
     });
-  }, [canvas, canRedo, history]);
+  }, [canvas, canRedo]);
 
   // global keyboard shortcuts
   useEffect(() => {
