@@ -234,6 +234,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   }, [activeTool, canvas]);
 
   // keep canvas width and height in sync with container element
+  useEffect(() => {
     if (!containerRef.current || !canvas) return;
     const obs = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -247,7 +248,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     });
     obs.observe(containerRef.current);
     return () => obs.disconnect();
-
   }, [canvas]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
