@@ -184,7 +184,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     const json = decompressFromUTF16(historyRef.current[idx]);
     ignoreRef.current = true;
     canvas.loadFromJSON(json as any, () => {
-      ignoreRef.current = false;
       const objs = canvas.getObjects();
       console.log('after load objects', objs.length, objs.map(o => ({type:o.type,left:o.left,top:o.top,width:o.width,height:o.height,visible:o.visible})) );
       canvas.setViewportTransform([1,0,0,1,0,0]);
@@ -230,13 +229,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         (canvas as any).setActiveObject?.(textbox);
       }
     }
-    canvas.setViewportTransform([1,0,0,1,0,0]);
     canvas.forEachObject(obj => obj.setCoords());
     canvas.requestRenderAll();
   }, [activeTool, canvas]);
 
   // keep canvas width and height in sync with container element
-  useEffect(() => {
     if (!containerRef.current || !canvas) return;
     const obs = new ResizeObserver((entries) => {
       for (const entry of entries) {
