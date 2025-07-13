@@ -8,12 +8,14 @@ import { PreviewPane } from '../components/PreviewPane.js';
 export default function MobileBoard() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  type DrawerState = 'peek' | 'half' | 'full';
-  const [drawerState, setDrawerState] = useState<DrawerState>('peek');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // auto open drawer when image generated
+  // open drawer when generating starts or preview ready
   useEffect(() => {
-    if (previewUrl) setDrawerState('half');
+    if (generating) setDrawerOpen(true);
+  }, [generating]);
+  useEffect(() => {
+    if (previewUrl) setDrawerOpen(true);
   }, [previewUrl]);
 
   return (
@@ -25,8 +27,7 @@ export default function MobileBoard() {
 
       {/* Sliding drawer */}
       <div
-        className={`fixed left-0 bottom-0 w-full bg-white border-t border-gray-200 shadow-xl transform transition-transform duration-300 ease-out
-          ${drawerState==='peek' ? 'translate-y-[calc(100%_-_24px)] max-h-0' : drawerState==='half' ? 'translate-y-[40vh] max-h-[60vh]' : 'translate-y-0 h-[100dvh]'}`}
+        className={`fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* handle */}
         <div
