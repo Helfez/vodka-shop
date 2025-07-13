@@ -7,6 +7,8 @@ import { FluxTestPage } from './components/FluxTest';
 import KontextChat from './components/KontextChat';
 // @ts-ignore vite handles ts extension
 import AiChat from './pages/AiChat';
+// @ts-ignore vite handles ts extension
+import MobileBoard from './pages/MobileBoard';
 
 import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
@@ -29,6 +31,7 @@ function App() {
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
     if (path.startsWith('/kontext')) return <KontextChat />;
 if (path.startsWith('/ai')) return <AiChat />;
+    if (path.startsWith('/mobile')) return <MobileBoard />;
   }
   const [loaded, setLoaded] = useState(false);
 
