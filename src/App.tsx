@@ -28,9 +28,14 @@ function App() {
   const [generating, setGenerating] = useState(false);
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
+    const ua = navigator.userAgent || '';
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(ua) || window.matchMedia('(max-width: 768px)').matches;
+    if (isMobile && !path.startsWith('/mobile')) {
+      window.location.replace('/mobile');
+    }
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
     if (path.startsWith('/kontext')) return <KontextChat />;
-if (path.startsWith('/ai')) return <AiChat />;
+    if (path.startsWith('/ai')) return <AiChat />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
   }
   const [loaded, setLoaded] = useState(false);
