@@ -393,8 +393,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         )}
         <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
       </div>
-        className={`fixed top-20 left-4 z-30 w-12 h-12 rounded-full text-xl shadow-lg flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
-      >⚡</button>
+        
     </div>
   );
 }
