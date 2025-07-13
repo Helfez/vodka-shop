@@ -391,7 +391,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
           const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
           generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
         }}
-        className={`fixed top-3 left-3 z-50 w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
+        className={`fixed top-20 left-4 z-30 w-12 h-12 rounded-full text-xl shadow-lg flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
       >⚡</button>
     </div>
   );
