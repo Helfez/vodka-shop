@@ -27,18 +27,14 @@ export default function MobileBoard() {
 
       {/* Sliding drawer */}
       <div
-        className={`fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-full'} flex flex-col h-[100dvh] pb-[env(safe-area-inset-bottom)] overflow-y-auto`}
       >
         {/* handle */}
         <div
           className="w-12 h-1.5 bg-gray-400 rounded-full mx-auto my-2 cursor-pointer"
-          onClick={() => setDrawerState(prev => {
-            if (prev==='peek') return 'half';
-            if (prev==='half') return 'full';
-            return 'peek';
-          })}
+          onClick={() => setDrawerOpen(false)}
         />
-        <div className="p-3 overflow-y-auto max-h-[calc(60vh-40px)]">
+        <div className="pt-12 px-3 flex-grow">
           <PreviewPane imageUrl={previewUrl} loading={generating} />
         </div>
       </div>
