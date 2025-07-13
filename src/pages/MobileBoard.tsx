@@ -31,7 +31,7 @@ export default function MobileBoard() {
       >
         {/* grip / toggle */}
         <div
-          className="w-10 h-1.5 bg-gray-400 rounded-full mx-auto my-3 cursor-pointer"
+          className="w-8 h-1.5 bg-gray-400 rounded-full my-3 ml-4 cursor-pointer"
           onClick={() => setDrawerOpen(prev => !prev)}
         />
         {/* handle */}
