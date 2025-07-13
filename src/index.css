@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Disable iOS Safari pull-to-refresh / overscroll bounce */
+html, body {
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
+}
+
 /* Tailwind base imports */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(12px); }
