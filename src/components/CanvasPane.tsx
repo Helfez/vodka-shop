@@ -323,8 +323,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
               key={opt.id}
               type="button"
               onClick={() => !disabled && toggleStyle(opt.id)}
-              className={`ghost-btn !w-32 !h-32 shrink-0 flex items-center justify-center relative group
-                ${active ? 'ring-4 ring-inset ring-cyan-500' : ''}
+              className={`ghost-btn !w-32 !h-32 shrink-0 flex items-center justify-center relative group transition transform
+                ${active ? 'ring-4 ring-cyan-500 ring-offset-2 ring-offset-white scale-105 shadow-lg' : 'hover:ring-2 hover:ring-cyan-400'}
                 ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
               <img src={opt.img} alt={opt.name} className="w-28 h-28 object-contain pointer-events-none" />
