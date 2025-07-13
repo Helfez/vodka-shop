@@ -8,11 +8,12 @@ import { PreviewPane } from '../components/PreviewPane.js';
 export default function MobileBoard() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  type DrawerState = 'peek' | 'half' | 'full';
+  const [drawerState, setDrawerState] = useState<DrawerState>('peek');
 
   // auto open drawer when image generated
   useEffect(() => {
-    if (previewUrl) setDrawerOpen(true);
+    if (previewUrl) setDrawerState('half');
   }, [previewUrl]);
 
   return (
@@ -24,12 +25,17 @@ export default function MobileBoard() {
 
       {/* Sliding drawer */}
       <div
-        className={`fixed left-0 bottom-0 w-full max-h-[60vh] bg-white border-t border-gray-200 shadow-xl transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-[calc(100%_-_24px)]'}`}
+        className={`fixed left-0 bottom-0 w-full bg-white border-t border-gray-200 shadow-xl transform transition-transform duration-300 ease-out
+          ${drawerState==='peek' ? 'translate-y-[calc(100%_-_24px)] max-h-0' : drawerState==='half' ? 'translate-y-[40vh] max-h-[60vh]' : 'translate-y-0 h-[100dvh]'}`}
       >
         {/* handle */}
         <div
           className="w-12 h-1.5 bg-gray-400 rounded-full mx-auto my-2 cursor-pointer"
-          onClick={() => setDrawerOpen(o => !o)}
+          onClick={() => setDrawerState(prev => {
+            if (prev==='peek') return 'half';
+            if (prev==='half') return 'full';
+            return 'peek';
+          })}
         />
         <div className="p-3 overflow-y-auto max-h-[calc(60vh-40px)]">
           <PreviewPane imageUrl={previewUrl} loading={generating} />
