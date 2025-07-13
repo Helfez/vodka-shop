@@ -23,6 +23,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
   const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('pencil');
   // style selection state: default first option checked
+  const [styleOpen,setStyleOpen]=useState(false);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
 
   /* ---------------- Undo / Redo history ---------------- */
@@ -299,6 +300,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
           onClick={undo}
           disabled={pointerRef.current <= 0}
         >↶ Undo</button>
+        {/* Style drawer toggle */}
+        <button
+          className="ghost-btn bg-white text-gray-700"
+          onClick={() => setStyleOpen(o=>!o)}
+        >✨ Style</button>
 
           {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
       {result && (
@@ -306,7 +312,9 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       )}
     </div>
       {/* Style picker */}
-      <div className="flex gap-3 mb-3 overflow-x-auto whitespace-nowrap pb-1">
+      <div className={`transition-all duration-300 overflow-x-auto whitespace-nowrap pb-1 ${styleOpen?'max-h-44':'max-h-0'} ${styleOpen?'mt-3':'mt-0'}`}
+        style={{visibility: styleOpen ? 'visible':'hidden'}}>
+        <div className="flex gap-3">
         {STYLE_OPTIONS.map(opt => {
           const active = selectedStyles.includes(opt.id);
           const disabled = maxChosen && !active;
@@ -326,6 +334,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Generate button */}
