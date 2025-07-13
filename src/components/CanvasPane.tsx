@@ -21,7 +21,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
-  const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('pencil');
+  const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('select');
   // style selection state: default first option checked
   const [styleOpen,setStyleOpen]=useState(false);
   // bounce hint for style button on first load
@@ -60,6 +60,18 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
   // report loading state
   useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
+
+  // pen settings
+  const COLORS = ['#ff4d4f','#fa8c16','#fadb14','#52c41a','#1677ff','#722ed1','#1f1f1f'];
+  const [penColor,setPenColor]=useState(COLORS[0]);
+  const [penSize,setPenSize]=useState(4);
+
+  useEffect(()=>{
+    if(!canvas) return;
+    const brush = canvas.freeDrawingBrush as fabric.PencilBrush;
+    brush.color = penColor;
+    brush.width = penSize;
+  },[penColor,penSize,canvas]);
 
   const toggleStyle = (id: string) => {
     setSelectedStyles(prev => {
@@ -314,6 +326,18 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         <div className="text-green-600 text-sm mt-1">Generated!</div>
       )}
     </div>
+      {/* Pen settings panel */}
+      <div className={`transition-all duration-300 overflow-hidden ${activeTool==='pencil'?'max-h-20':'max-h-0'}`}
+        style={{visibility:activeTool==='pencil'?'visible':'hidden'}}>
+        <div className="flex items-center gap-3 px-4 py-2">
+          {COLORS.map(c=>
+            <button key={c} className={`w-6 h-6 rounded-full border-2 ${penColor===c?'border-cyan-500':'border-white'}`} style={{background:c}}
+              onClick={()=>setPenColor(c)}/>
+          )}
+          <input type="range" min={2} max={20} value={penSize} onChange={e=>setPenSize(Number(e.target.value))} className="flex-grow"/>
+        </div>
+      </div>
+
       {/* Style picker */}
       <div className={`transition-all duration-300 overflow-x-auto whitespace-nowrap pb-1 ${styleOpen?'max-h-44':'max-h-0'} ${styleOpen?'mt-3':'mt-0'}`}
         style={{visibility: styleOpen ? 'visible':'hidden'}}>
@@ -340,20 +364,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         </div>
       </div>
 
-      {/* Generate button */}
-      <div className="mb-4 flex justify-end">
-        <button
-          disabled={loading}
-          onClick={() => {
-            const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
-            generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
-          }}
-          className="px-4 py-2 rounded bg-cyan-500 text-white disabled:opacity-50"
-        >
-          {loading ? 'Generating…' : 'Generate'}
-        </button>
-      </div>
-
       {/* Canvas */}
       <div
         ref={containerRef}
@@ -374,6 +384,15 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         )}
         <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
       </div>
+      {/* Floating Generate FAB */}
+      <button
+        disabled={loading}
+        onClick={() => {
+          const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
+          generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
+        }}
+        className={`fixed top-3 left-3 z-50 w-14 h-14 rounded-full text-2xl shadow-lg flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
+      >⚡</button>
     </div>
   );
 }
