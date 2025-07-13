@@ -26,9 +26,15 @@ function App() {
   }, [isLoading, isAuthenticated, loginWithRedirect]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  if (typeof window !== 'undefined') {
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (isLoading) return; // wait until Auth0 handled tokens
+    const isMobileScreen = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = isMobileUA || isMobileScreen;
     const path = window.location.pathname;
-    const ua = navigator.userAgent || '';
     if (isMobile && !path.startsWith('/mobile')) {
       const hash = window.location.hash;
       window.history.replaceState(null, '', '/mobile' + hash);
