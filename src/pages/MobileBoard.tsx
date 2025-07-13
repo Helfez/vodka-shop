@@ -27,8 +27,13 @@ export default function MobileBoard() {
 
       {/* Sliding drawer */}
       <div
-        className={`fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-full'} flex flex-col h-[100dvh] pb-[env(safe-area-inset-bottom)] overflow-y-auto`}
+        className={`fixed inset-x-0 bottom-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-[calc(100%-32px)]'} flex flex-col h-[100dvh] pb-[env(safe-area-inset-bottom)] overflow-y-auto rounded-t-xl shadow-lg`}
       >
+        {/* grip / toggle */}
+        <div
+          className="w-10 h-1.5 bg-gray-400 rounded-full mx-auto my-3 cursor-pointer"
+          onClick={() => setDrawerOpen(prev => !prev)}
+        />
         {/* handle */}
         <div
           className="w-12 h-1.5 bg-gray-400 rounded-full mx-auto my-2 cursor-pointer"
