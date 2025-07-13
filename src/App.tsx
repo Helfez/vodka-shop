@@ -26,6 +26,8 @@ function App() {
   }, [isLoading, isAuthenticated, loginWithRedirect]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
   const isMobileUA = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
 
@@ -48,7 +50,7 @@ function App() {
     if (path.startsWith('/ai')) return <AiChat />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
   }
-  const [loaded, setLoaded] = useState(false);
+
 
   if (isLoading) return null;
 
