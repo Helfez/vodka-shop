@@ -43,6 +43,11 @@ html, body {
   @apply bg-white text-blue-500 border-blue-300 px-12 w-40;
 }
 
+/* Active state for toolbar ghost buttons */
+.ghost-btn-active {
+  @apply bg-cyan-100 border-cyan-400 text-cyan-700 shadow-inner ring-2 ring-cyan-300 scale-105;
+}
+
 /* Drag handle */
 .drag-handle {
   @apply w-[110px] h-[18px] bg-cyan-50/60 border border-cyan-200 rounded-md;
