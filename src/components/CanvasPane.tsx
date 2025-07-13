@@ -371,6 +371,15 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         className="flex-grow mb-4 border border-gray-300 rounded-lg overflow-hidden bg-white relative"
       >
         <canvas ref={canvasRef} className="w-full h-full block" style={{ height: '100%', width: '100%' }} />
+        {/* Generate FAB inside canvas */}
+        <button
+          disabled={loading}
+          onClick={() => {
+            const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
+            generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
+          }}
+          className={`absolute top-2 left-2 z-20 w-10 h-10 rounded-full text-lg shadow-md flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
+        >⚡</button>
         {contextMenu.visible && (
           <ul
             className="absolute bg-white border rounded shadow-md z-50 text-sm"
@@ -384,13 +393,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         )}
         <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
       </div>
-      {/* Floating Generate FAB */}
-      <button
-        disabled={loading}
-        onClick={() => {
-          const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
-          generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
-        }}
         className={`fixed top-20 left-4 z-30 w-12 h-12 rounded-full text-xl shadow-lg flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
       >⚡</button>
     </div>
