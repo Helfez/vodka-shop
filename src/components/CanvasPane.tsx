@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
+import AssetPanel from './AssetPanel';
 import * as fabric from 'fabric';
 import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 
@@ -25,7 +26,10 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   // style selection state: default first option checked
   const [styleOpen,setStyleOpen]=useState(false);
   // bounce hint for style button on first load
-  const [styleHint,setStyleHint]=useState(true);
+  const [styleHint,setStyleHint] = useState(true);
+  // asset panel state
+  const [assetOpen,setAssetOpen] = useState(false);
+  const usedAssets = useRef<Set<string>>(new Set());
   useEffect(()=>{const t=setTimeout(()=>setStyleHint(false),1500);return()=>clearTimeout(t);},[]);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
 
@@ -263,6 +267,22 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     return () => obs.disconnect();
   }, [canvas]);
 
+  const handleAddAsset = (url: string) => {
+    if (!canvas) return;
+    if (usedAssets.current.has(url)) return;
+    fabric.Image.fromURL(url, (img) => {
+      img.scaleToWidth(200);
+      canvas.add(img);
+      (canvas as any).centerObject?.(img);
+      (canvas as any).setActiveObject?.(img);
+      canvas.setViewportTransform([1,0,0,1,0,0]);
+      canvas.forEachObject(obj=>obj.setCoords());
+      canvas.requestRenderAll();
+      saveHistory();
+      usedAssets.current.add(url);
+    }, { crossOrigin: 'anonymous' });
+  };
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!canvas) return;
     const file = e.target.files?.[0];
@@ -311,10 +331,15 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 
         {/* Undo button */}
         <button
-          className="ghost-btn bg-white text-gray-700 disabled:opacity-40"
+          className="ghost-btn bg-white text-gray-500 disabled:opacity-40"
           onClick={undo}
           disabled={pointerRef.current <= 0}
-        >↶ Undo</button>
+        >↶</button>
+        {/* Asset Pack button */}
+        <button
+          className={`w-14 h-14 rounded-full bg-cyan-500 text-white shadow-lg flex items-center justify-center ${assetOpen?'ring-4 ring-cyan-300':''}`}
+          onClick={()=>setAssetOpen(true)}
+        >🖼️</button>
         {/* Style drawer toggle */}
         <button
           className={`ghost-btn bg-white text-gray-700 ${styleHint?'animate-bounce':''}`}
@@ -394,6 +419,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
         <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
       </div>
         
+      <AssetPanel
+        open={assetOpen}
+        onClose={()=>setAssetOpen(false)}
+        onSelect={handleAddAsset}
+        used={usedAssets.current}
+      />
     </div>
   );
 }
