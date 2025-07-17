@@ -113,15 +113,12 @@ Your output **must follow** the structured JSON format below, to be used directl
       const res = await fetch('/api/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, prompts, branch }),
+        body: JSON.stringify({ imageUrl, styleImageUrl: styleUrl, prompts, branch, useStyle }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       setResults(data.outputs || {});
       setGenImage(data.imageUrl || null);
-    } catch (e: any) {
-      console.error(e);
-      alert(e.message || 'Pipeline error');
     } catch (e: any) {
       console.error(e);
       alert(e.message || 'Pipeline error');
