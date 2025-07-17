@@ -65,19 +65,24 @@ export async function POST(request: Request) {
       throw new Error(firstErr);
     }
 
-    // Persist generated image to Cloudinary so it is reliably hosted
+    // Persist generated image to Cloudinary directly (more reliable than internal fetch)
     try {
-      const uploadRes = await fetch(`${new URL(request.url).origin}/api/upload`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: outputUrl }),
+      // Lazy import to avoid unused dep in edge if not configured
+      const { v2: cloudinary } = await import('cloudinary');
+      cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
       });
-      const { url: storedUrl } = await uploadRes.json();
-      return new Response(JSON.stringify({ imageUrl: storedUrl || outputUrl }), {
+      const cldRes: any = await cloudinary.uploader.upload(outputUrl, {
+        folder: 'vodkaShop/generated',
+        overwrite: false,
+      });
+      return new Response(JSON.stringify({ imageUrl: cldRes.secure_url }), {
         headers: { 'Content-Type': 'application/json' },
       });
     } catch (e) {
-      console.warn('Failed to persist image to Cloudinary, returning original url', e);
+      console.warn('Cloudinary persist failed, fallback to original url', e);
       return new Response(JSON.stringify({ imageUrl: outputUrl }), {
         headers: { 'Content-Type': 'application/json' },
       });
