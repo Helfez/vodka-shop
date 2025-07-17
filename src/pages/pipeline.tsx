@@ -68,7 +68,7 @@ Your output **must follow** the structured JSON format below, to be used directl
   "Text or Symbol Cues": ["detected word1", "symbol shape2"],
   "Material or Surface Hints": ["e.g., ceramic-like, translucent, soft vinyl"],
   "Creative Summary for Toy Concept": "One short sentence summarizing the visual and conceptual direction"
-}`,`,
+}
     role5: `你是潮玩AI设计工作流中用于生成最终 image-one 图像的提示词整合师。你将基于前四位角色的内容，汇总并标准化为 image-one 所需的 prompt 文本。提示词需符合打印可实现精度，不能包含过于复杂的光影或物理不可实现结构，风格表达需聚焦视觉标签与文化特征。`
   });
   const [branch, setBranch] = useState(true);
