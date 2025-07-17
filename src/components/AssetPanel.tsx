@@ -38,7 +38,7 @@ export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanel
 
   return (
     <div
-      className={`fixed inset-0 z-40 transition-transform duration-300 bg-white/95 backdrop-blur-sm overflow-hidden ${
+      className={`fixed left-0 right-0 bottom-0 h-1/2 z-40 transition-transform duration-300 bg-white/95 backdrop-blur-sm overflow-hidden ${
         open ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
