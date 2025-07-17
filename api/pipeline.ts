@@ -59,9 +59,8 @@ export async function POST(req: Request) {
 
     // generate image via internal image API
     // Build absolute URL for the internal /api/image endpoint (required on Vercel)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_PATH || process.env.VERCEL_URL ?
-      `https://${process.env.VERCEL_URL}` :
-      'http://localhost:3000';
+    // Derive current origin from the incoming request (works both locally and on Vercel)
+    const baseUrl = new URL(req.url).origin;
     const imgRes = await fetch(`${baseUrl}/api/image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
