@@ -39,33 +39,7 @@ export async function POST(request: Request) {
       // not formData, fall through to JSON parsing
     }
 
-    // Fallback to JSON body
-      const formData = await request.formData();
-      const file = formData.get('file');
-      if (!(file instanceof File)) {
-        return new Response(JSON.stringify({ error: 'file field missing' }), { status: 400 });
-      }
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      // Upload via stream to Cloudinary
-      const uploadRes: any = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: 'vodkaShop', overwrite: false },
-          (err, res) => {
-            if (err || !res) return reject(err || new Error('Upload failed'));
-            resolve(res);
-          },
-        );
-        stream.end(buffer);
-      });
-
-      return new Response(JSON.stringify({ secureUrl: uploadRes.secure_url }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Fallback: JSON body containing imageUrl (base64 or URL)
+    // Fallback: JSON body containing imageUrl (base64 or remote URL)
     const { imageUrl } = (await request.json()) as { imageUrl?: string };
     if (!imageUrl) {
       return new Response(JSON.stringify({ error: 'imageUrl missing' }), { status: 400 });
@@ -77,6 +51,8 @@ export async function POST(request: Request) {
     return new Response(JSON.stringify({ secureUrl: uploadRes.secure_url }), {
       headers: { 'Content-Type': 'application/json' },
     });
+
+
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     return new Response(JSON.stringify({ error: 'Upload failed' }), { status: 500 });
