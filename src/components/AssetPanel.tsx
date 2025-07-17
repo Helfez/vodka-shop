@@ -34,8 +34,7 @@ export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanel
     [onSelect, used]
   );
 
-  const categories = Object.keys(index);
-  const assets = activeCat ? index[activeCat] ?? [] : [];
+
 
   return (
     <div
