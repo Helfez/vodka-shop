@@ -9,10 +9,37 @@ cloudinary.config({
 
 export async function POST(request: Request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
+    // Try to parse as multipart/form-data first (works even if content-type header missing in some runtimes)
+    try {
+      const formData = await request.clone().formData();
+      const file = formData.get('file');
+      if (file) {
+        if (!(file instanceof File)) {
+          return new Response(JSON.stringify({ error: 'file field invalid' }), { status: 400 });
+        }
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
 
-    // Handle multipart/form-data (file upload via formData)
-    if (contentType.includes('multipart/form-data')) {
+        const uploadRes: any = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: 'vodkaShop', overwrite: false },
+            (err, res) => {
+              if (err || !res) return reject(err || new Error('Upload failed'));
+              resolve(res);
+            },
+          );
+          stream.end(buffer);
+        });
+
+        return new Response(JSON.stringify({ secureUrl: uploadRes.secure_url }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    } catch (_) {
+      // not formData, fall through to JSON parsing
+    }
+
+    // Fallback to JSON body
       const formData = await request.formData();
       const file = formData.get('file');
       if (!(file instanceof File)) {
