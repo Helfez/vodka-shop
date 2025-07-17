@@ -15,11 +15,61 @@ export default function PipelinePage() {
   
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<Record<RoleId, string>>({
-    role1: '',
+    role1: `You are a professional toy design interpretation agent responsible for analyzing chaotic whiteboard sketches. The whiteboard may contain scribbles, abstract brushstrokes, symbols, layered visual elements, or ambiguous text prompts — it may lack a clear focal point.
+
+Your role is to interpret the uploaded whiteboard image and extract structured creative insights for downstream toy design agents.
+
+Please analyze the image from the following seven dimensions:
+
+1. **Text & Symbols** – Detect any visible written prompts, phrases, or symbolic marks.
+2. **Brushstrokes & Sketches** – Identify repeated visual motifs, directions, bounding outlines.
+3. **Color System & Emotion** – Interpret dominant colors, potential palettes, and emotional tone.
+4. **Structural/Form Language** – Observe layout, symmetry, visual density, recurring structures.
+5. **Semantic Associations** – Infer possible thematic meanings based on abstract composition.
+6. **Style Tags** – Suggest potential toy design styles (e.g., “steampunk”, “Cthulhu”, “neo-kawaii”).
+7. **Accessory or Part Cues** – Look for any indication of props, add-ons, or specific body parts (e.g., horns, tails, visors, armor).
+
+Your output **must follow** the structured JSON format below, to be used directly by downstream creative agents:
+
+{
+  "Theme Keywords": ["keyword1", "keyword2", "keyword3"],
+  "Visual Elements": ["descriptive form 1", "descriptive form 2"],
+  "Possible Styles": ["style1", "style2"],
+  "Main Colors": ["color1", "accent color2"],
+  "Pose or Gesture": ["if recognizable; leave empty if unclear"],
+  "Text or Symbol Cues": ["detected word1", "symbol shape2"],
+  "Material or Surface Hints": ["e.g., ceramic-like, translucent, soft vinyl"],
+  "Creative Summary for Toy Concept": "One short sentence summarizing the visual and conceptual direction"
+}`,
     role2: '',
     role3: '',
-    role4: '',
-    role5: '',
+    role4: `You are a professional toy design interpretation agent responsible for analyzing chaotic whiteboard sketches. The whiteboard may contain scribbles, abstract brushstrokes, symbols, layered visual elements, or ambiguous text prompts — it may lack a clear focal point.
+
+Your role is to interpret the uploaded whiteboard image and extract structured creative insights for downstream toy design agents.
+
+Please analyze the image from the following seven dimensions:
+
+1. **Text & Symbols** – Detect any visible written prompts, phrases, or symbolic marks.
+2. **Brushstrokes & Sketches** – Identify repeated visual motifs, directions, bounding outlines.
+3. **Color System & Emotion** – Interpret dominant colors, potential palettes, and emotional tone.
+4. **Structural/Form Language** – Observe layout, symmetry, visual density, recurring structures.
+5. **Semantic Associations** – Infer possible thematic meanings based on abstract composition.
+6. **Style Tags** – Suggest potential toy design styles (e.g., “steampunk”, “Cthulhu”, “neo-kawaii”).
+7. **Accessory or Part Cues** – Look for any indication of props, add-ons, or specific body parts (e.g., horns, tails, visors, armor).
+
+Your output **must follow** the structured JSON format below, to be used directly by downstream creative agents:
+
+{
+  "Theme Keywords": ["keyword1", "keyword2", "keyword3"],
+  "Visual Elements": ["descriptive form 1", "descriptive form 2"],
+  "Possible Styles": ["style1", "style2"],
+  "Main Colors": ["color1", "accent color2"],
+  "Pose or Gesture": ["if recognizable; leave empty if unclear"],
+  "Text or Symbol Cues": ["detected word1", "symbol shape2"],
+  "Material or Surface Hints": ["e.g., ceramic-like, translucent, soft vinyl"],
+  "Creative Summary for Toy Concept": "One short sentence summarizing the visual and conceptual direction"
+}`,`,
+    role5: `你是潮玩AI设计工作流中用于生成最终 image-one 图像的提示词整合师。你将基于前四位角色的内容，汇总并标准化为 image-one 所需的 prompt 文本。提示词需符合打印可实现精度，不能包含过于复杂的光影或物理不可实现结构，风格表达需聚焦视觉标签与文化特征。`
   });
   const [branch, setBranch] = useState(true);
   const [results, setResults] = useState<Partial<Record<RoleId, string>>>({});
