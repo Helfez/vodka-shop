@@ -74,6 +74,7 @@ Your output **must follow** the structured JSON format below, to be used directl
   const [branch, setBranch] = useState(true);
   const [results, setResults] = useState<Partial<Record<RoleId, string>>>({});
   const [genImage, setGenImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
 
   const handleUpload = async (file: File) => {
@@ -94,6 +95,8 @@ Your output **must follow** the structured JSON format below, to be used directl
   };
 
   const runPipeline = async () => {
+    if (loading) return; // guard
+    setLoading(true);
     if (!imageUrl) return alert('请先上传草图');
     setResults({});
     setGenImage(null);
@@ -111,8 +114,11 @@ Your output **must follow** the structured JSON format below, to be used directl
     } catch (e: any) {
       console.error(e);
       alert(e.message || 'Pipeline error');
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message || 'Pipeline error');
     } finally {
-      
+      setLoading(false);
     }
   };
 
@@ -167,7 +173,7 @@ Your output **must follow** the structured JSON format below, to be used directl
 
       <button
         className="px-6 py-2 bg-cyan-600 text-white rounded disabled:opacity-50"
-        disabled={!imageUrl}
+        disabled={!imageUrl || loading}
         onClick={runPipeline}
       >
         运行流水线
