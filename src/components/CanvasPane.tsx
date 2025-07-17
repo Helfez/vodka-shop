@@ -168,7 +168,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
     };
-      // bind change events for history
+     ge events for history
   }, []);
 
   // save snapshot on finalized changes: completed drawings and non-drawing additions
@@ -274,6 +274,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     if (usedAssets.current.has(url)) return;
     console.log('handleAddAsset start',url);
 fabric.Image.fromURL(url, (img: any) => {
+      if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
       canvas.add(img);
       (canvas as any).centerObject?.(img);
@@ -284,6 +285,7 @@ fabric.Image.fromURL(url, (img: any) => {
       saveHistory();
       usedAssets.current.add(url);
 console.log('handleAddAsset done');
+    }, { crossOrigin: 'anonymous' });
     });
   };
 
