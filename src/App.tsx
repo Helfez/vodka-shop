@@ -9,6 +9,8 @@ import KontextChat from './components/KontextChat';
 import AiChat from './pages/AiChat';
 // @ts-ignore vite handles ts extension
 import MobileBoard from './pages/MobileBoard';
+// @ts-ignore vite handles ts extension
+import PipelinePage from './pages/pipeline';
 
 import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
@@ -49,6 +51,7 @@ function App() {
     if (path.startsWith('/kontext')) return <KontextChat />;
     if (path.startsWith('/ai')) return <AiChat />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
+    if (path.startsWith('/pipeline')) return <PipelinePage />;
   }
 
 
