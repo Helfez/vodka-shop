@@ -27,10 +27,24 @@ export async function POST(req: Request) {
     const outputs: Partial<Record<(typeof ROLE_IDS)[number], string>> = {};
 
     // helper to call chat
-    const callChat = async (systemPrompt: string, userContent: string) => {
-      const messages = [
+    /**
+     * Vision-compatible chat call.
+     * @param systemPrompt system prompt
+     * @param text textual part sent to model
+     * @param imageUrls optional image urls array (will be sent as `image_url` parts)
+     */
+    const callChat = async (
+      systemPrompt: string,
+      text: string,
+      imageUrls: string[] = []
+    ) => {
+      const userContentParts: any[] = [
+        ...imageUrls.map((u) => ({ type: 'image_url', image_url: { url: u } })),
+        { type: 'text', text },
+      ];
+      const messages: any = [
         { role: 'system', content: systemPrompt || '' },
-        { role: 'user', content: userContent },
+        { role: 'user', content: userContentParts },
       ];
       const res = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -43,19 +57,20 @@ export async function POST(req: Request) {
     // role1 – image analysis
     outputs.role1 = await callChat(
       prompts.role1,
-      `<image src="${imageUrl}" alt="draft" />\n请分析这张草稿图。`
+      '请分析这张草稿图。',
+      [imageUrl]
     );
 
     // branch roles 2-4
     if (branch) {
       // Run roles 2-4 in parallel, all based on role1 output to avoid dependency chain
-      const withStyle = (role: 'role2' | 'role3' | 'role4') =>
-        (useStyle[role] && styleImageUrl ? `<image src="${styleImageUrl}" alt="style" />\n` : '') + (outputs.role1 || '');
+      const styleArr = (role: 'role2' | 'role3' | 'role4') =>
+        useStyle[role] && styleImageUrl ? [styleImageUrl] : [];
 
       const [r2, r3, r4] = await Promise.all([
-        callChat(prompts.role2, withStyle('role2')),
-        callChat(prompts.role3, withStyle('role3')),
-        callChat(prompts.role4, withStyle('role4')),
+        callChat(prompts.role2, outputs.role1 || '', styleArr('role2')),
+        callChat(prompts.role3, outputs.role1 || '', styleArr('role3')),
+        callChat(prompts.role4, outputs.role1 || '', styleArr('role4')),
       ]);
       outputs.role2 = r2;
       outputs.role3 = r3;
@@ -66,8 +81,11 @@ export async function POST(req: Request) {
     const synthesisInput = branch
       ? `${outputs.role1}\n${outputs.role2}\n${outputs.role3}\n${outputs.role4}`
       : outputs.role1 || '';
-    const role5Input = (useStyle.role5 && styleImageUrl ? `<image src="${styleImageUrl}" alt="style" />\n` : '') + synthesisInput;
-    outputs.role5 = await callChat(prompts.role5, role5Input);
+    outputs.role5 = await callChat(
+      prompts.role5,
+      synthesisInput,
+      useStyle.role5 && styleImageUrl ? [styleImageUrl] : []
+    );
 
     // generate image via internal image API
     // Build absolute URL for the internal /api/image endpoint (required on Vercel)
