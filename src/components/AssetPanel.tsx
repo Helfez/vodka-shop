@@ -29,7 +29,7 @@ export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanel
   const handleSelect = useCallback(
     (url: string) => {
       if (used.has(url)) return;
-      onSelect(url);
+      console.log('AssetPanel select',url); onSelect(url);
     },
     [onSelect, used]
   );

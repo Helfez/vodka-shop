@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
-import AssetPanel from './AssetPanel';
+import AssetPanel from './AssetPanel.tsx';
 import * as fabric from 'fabric';
 import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 
@@ -270,7 +270,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const handleAddAsset = (url: string) => {
     if (!canvas) return;
     if (usedAssets.current.has(url)) return;
-    fabric.Image.fromURL(url, (img) => {
+    fabric.Image.fromURL(url, (img: any) => {
       img.scaleToWidth(200);
       canvas.add(img);
       (canvas as any).centerObject?.(img);
