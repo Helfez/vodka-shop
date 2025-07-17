@@ -58,7 +58,11 @@ export async function POST(req: Request) {
     outputs.role5 = await callChat(prompts.role5, synthesisInput);
 
     // generate image via internal image API
-    const imgRes = await fetch(process.env.NEXT_PUBLIC_BASE_PATH ? `${process.env.NEXT_PUBLIC_BASE_PATH}/api/image` : `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/api/image`, {
+    // Build absolute URL for the internal /api/image endpoint (required on Vercel)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_PATH || process.env.VERCEL_URL ?
+      `https://${process.env.VERCEL_URL}` :
+      'http://localhost:3000';
+    const imgRes = await fetch(`${baseUrl}/api/image`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: outputs.role5 }),
