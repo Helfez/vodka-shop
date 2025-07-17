@@ -273,7 +273,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     if (!canvas) return;
     if (usedAssets.current.has(url)) return;
     console.log('handleAddAsset start',url);
-fabric.Image.fromURL(url, (img: any) => {
+fabric.Image.fromURL(url).then((img: any) => {
       if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
       canvas.add(img);
