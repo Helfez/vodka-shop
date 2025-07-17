@@ -74,17 +74,25 @@ Your output **must follow** the structured JSON format below, to be used directl
   const [branch, setBranch] = useState(true);
   const [results, setResults] = useState<Partial<Record<RoleId, string>>>({});
   const [genImage, setGenImage] = useState<string | null>(null);
+  const [styleUrl, setStyleUrl] = useState<string | null>(null);
+  const [useStyle, setUseStyle] = useState<{ role2: boolean; role3: boolean; role4: boolean; role5: boolean }>({
+    role2: true,
+    role3: true,
+    role4: true,
+    role5: true,
+  });
   const [loading, setLoading] = useState(false);
   
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, isStyle = false) => {
     const form = new FormData();
     form.append('file', file);
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const data = await res.json();
       if (data.url) {
-        setImageUrl(data.url);
+        if (isStyle) setStyleUrl(data.url);
+        else setImageUrl(data.url);
       } else {
         alert(data.error || '上传失败');
       }
@@ -126,7 +134,7 @@ Your output **must follow** the structured JSON format below, to be used directl
     <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6 space-y-6">
       <h1 className="text-2xl font-bold">多 Agent 生图流水线 Demo</h1>
 
-      {/* Upload */}
+      {/* Upload main sketch */}
       <div className="flex flex-col items-center gap-2">
         <input
           type="file"
@@ -144,6 +152,21 @@ Your output **must follow** the structured JSON format below, to be used directl
         )}
       </div>
 
+      {/* Upload style image */}
+      <div className="flex flex-col items-center gap-2">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleUpload(f, true);
+          }}
+        />
+        {styleUrl && (
+          <img src={styleUrl} className="max-w-xs max-h-60 object-contain border rounded" />
+        )}
+      </div>
+
       {/* Branch toggle */}
       <label className="flex items-center gap-2">
         <input type="checkbox" checked={branch} onChange={() => setBranch(!branch)} />
@@ -154,7 +177,22 @@ Your output **must follow** the structured JSON format below, to be used directl
       <div className="w-full max-w-3xl flex flex-col gap-4">
         {ROLES.filter((r) => branch || r.id === 'role1' || r.id === 'role5').map((r) => (
           <div key={r.id} className="bg-white p-4 shadow rounded">
-            <h2 className="font-semibold mb-2">{r.name}</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-semibold">{r.name}</h2>
+              {['role2','role3','role4','role5'].includes(r.id) && (
+                <label className="text-sm flex items-center gap-1">
+                  <input
+                    type="checkbox"
+                    checked={useStyle[r.id as keyof typeof useStyle]}
+                    onChange={() => setUseStyle({
+                      ...useStyle,
+                      [r.id]: !useStyle[r.id as keyof typeof useStyle],
+                    })}
+                  />
+                  引用风格图
+                </label>
+              )}
+            </div>
             <textarea
               value={prompts[r.id]}
               onChange={(e) => setPrompts({ ...prompts, [r.id]: e.target.value })}
