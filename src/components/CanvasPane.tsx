@@ -280,7 +280,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       canvas.requestRenderAll();
       saveHistory();
       usedAssets.current.add(url);
-    }, { crossOrigin: 'anonymous' });
+    });
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
