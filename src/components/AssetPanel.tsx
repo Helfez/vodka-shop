@@ -69,7 +69,7 @@ export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanel
       <div className="p-4 overflow-y-auto h-[calc(100vh-160px)] custom-scrollbar">
         <div className="grid grid-cols-3 gap-3">
           {assets.map((file) => {
-            const url = `/assets/${activeCat}/${file}`;
+            const url = file;
             const disabled = used.has(url);
             return (
               <button
