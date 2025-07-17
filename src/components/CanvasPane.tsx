@@ -285,7 +285,7 @@ fabric.Image.fromURL(url, (img: any) => {
       saveHistory();
       usedAssets.current.add(url);
 console.log('handleAddAsset done');
-    }, { crossOrigin: 'anonymous' });
+    });
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
