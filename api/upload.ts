@@ -31,7 +31,7 @@ export async function POST(request: Request) {
           stream.end(buffer);
         });
 
-        return new Response(JSON.stringify({ secureUrl: uploadRes.secure_url }), {
+        return new Response(JSON.stringify({ url: uploadRes.secure_url }), {
           headers: { 'Content-Type': 'application/json' },
         });
       }
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       folder: 'vodkaShop',
       overwrite: false,
     });
-    return new Response(JSON.stringify({ secureUrl: uploadRes.secure_url }), {
+    return new Response(JSON.stringify({ url: uploadRes.secure_url }), {
       headers: { 'Content-Type': 'application/json' },
     });
 
