@@ -168,7 +168,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       window.removeEventListener('resize', resizeCanvas);
       fabricCanvas.dispose();
     };
-     ge events for history
+
   }, []);
 
   // save snapshot on finalized changes: completed drawings and non-drawing additions
