@@ -46,9 +46,15 @@ export async function POST(req: Request) {
 
     // branch roles 2-4
     if (branch) {
-      outputs.role2 = await callChat(prompts.role2, outputs.role1 || '');
-      outputs.role3 = await callChat(prompts.role3, outputs.role2 || outputs.role1 || '');
-      outputs.role4 = await callChat(prompts.role4, outputs.role3 || outputs.role2 || outputs.role1 || '');
+      // Run roles 2-4 in parallel, all based on role1 output to avoid dependency chain
+      const [r2, r3, r4] = await Promise.all([
+        callChat(prompts.role2, outputs.role1 || ''),
+        callChat(prompts.role3, outputs.role1 || ''),
+        callChat(prompts.role4, outputs.role1 || ''),
+      ]);
+      outputs.role2 = r2;
+      outputs.role3 = r3;
+      outputs.role4 = r4;
     }
 
     // role5 synthesis
