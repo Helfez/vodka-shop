@@ -155,6 +155,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
+    console.log('Fabric canvas initialised');
     setCanvas(fabricCanvas);
       // save initial snapshot
       
@@ -268,6 +269,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   }, [canvas]);
 
   const handleAddAsset = (url: string) => {
+    console.log('handleAddAsset called', url, 'canvas?', canvas, 'used?', usedAssets.current.has(url));
     if (!canvas) return;
     if (usedAssets.current.has(url)) return;
     console.log('handleAddAsset start',url);
