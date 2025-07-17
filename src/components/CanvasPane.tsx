@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
-import AssetPanel from './AssetPanel';
+import AssetPanel from './AssetPanel.js';
 import * as fabric from 'fabric';
 import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 
@@ -286,7 +286,6 @@ fabric.Image.fromURL(url, (img: any) => {
       usedAssets.current.add(url);
 console.log('handleAddAsset done');
     }, { crossOrigin: 'anonymous' });
-    });
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
