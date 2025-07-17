@@ -7,25 +7,24 @@ interface AssetPanelProps {
   used: Set<string>; // urls already inserted
 }
 
-interface AssetIndex {
-  [category: string]: string[];
-}
+type AssetIndex = Record<string, string[]>;
 
 export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanelProps) {
-  const [index, setIndex] = useState<AssetIndex>({});
-  const [activeCat, setActiveCat] = useState<string>('');
+  // build index at module init via Vite glob import (eager)
+  const index: AssetIndex = ((): AssetIndex => {
+    const build = (glob: Record<string, any>) =>
+      Object.values(glob) as string[];
+    return {
+      style: build(import.meta.glob('/src/assets/style/*', { eager: true, import: 'default' } as any)),
+      main: build(import.meta.glob('/src/assets/main/*', { eager: true, import: 'default' } as any)),
+      prop: build(import.meta.glob('/src/assets/prop/*', { eager: true, import: 'default' } as any)),
+      symbol: build(import.meta.glob('/src/assets/symbol/*', { eager: true, import: 'default' } as any)),
+    };
+  })();
 
-  // fetch index lazy
-  useEffect(() => {
-    if (!open || Object.keys(index).length) return;
-    fetch('/assets/assets.json')
-      .then((r) => r.json())
-      .then((data: AssetIndex) => {
-        setIndex(data);
-        setActiveCat(Object.keys(data)[0] ?? '');
-      })
-      .catch((e) => console.error('fetch assets.json error', e));
-  }, [open, index]);
+  const categories = Object.keys(index);
+  const [activeCat, setActiveCat] = useState<string>(categories[0] || 'style');
+  const assets = index[activeCat] ?? [];
 
   const handleSelect = useCallback(
     (url: string) => {
