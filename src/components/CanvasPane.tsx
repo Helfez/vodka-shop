@@ -281,7 +281,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 const animateIn = (obj: fabric.Object) => {
   if(!canvas) return;
   const { scaleX = 1, scaleY = 1 } = obj;
-  obj.set({ scaleX: 0.1, scaleY: 0.1, opacity: 0 });
+  obj.set({ scaleX: 0.1, scaleY: 0.1 });
   canvas.requestRenderAll();
   obj.animate('scaleX', scaleX, {
     duration: 400,
@@ -292,10 +292,6 @@ const animateIn = (obj: fabric.Object) => {
     duration: 400,
     onChange: canvas.renderAll.bind(canvas),
     easing: fabric.util.ease.easeOutBack,
-  });
-  obj.animate('opacity', 1, {
-    duration: 300,
-    onChange: canvas.renderAll.bind(canvas),
   });
 };
 
