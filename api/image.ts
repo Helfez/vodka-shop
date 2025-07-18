@@ -1,12 +1,16 @@
 import OpenAI from 'openai';
 
-// Image generation endpoint powered by Aimixhub image-one
+// Image generation endpoint powered by Azure OpenAI DALL-E
 // POST /api/image  { prompt: string }
 // Returns: { imageUrl: string }
 
 const openai = new OpenAI({
-  apiKey: process.env.AIMIXHUB_API_KEY,
-  baseURL: 'https://aihubmix.com/v1',
+  apiKey: process.env.AZURE_OPENAI_IMAGE_API_KEY || process.env.AZURE_OPENAI_API_KEY,
+  baseURL: `${process.env.AZURE_OPENAI_IMAGE_ENDPOINT || process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/dall-e-3`,
+  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview' },
+  defaultHeaders: {
+    'api-key': process.env.AZURE_OPENAI_IMAGE_API_KEY || process.env.AZURE_OPENAI_API_KEY,
+  },
 });
 
 interface ImageRequestBody {
@@ -60,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     if (!outputUrl) {
-      console.error('Aimixhub image generate response:', JSON.stringify(result));
+      console.error('Azure OpenAI image generate response:', JSON.stringify(result));
       const firstErr = (result as any).error?.message || 'No image returned';
       throw new Error(firstErr);
     }
