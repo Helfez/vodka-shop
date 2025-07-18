@@ -319,16 +319,16 @@ const handleRandomPackage = useCallback(() => {
   const centerX = canvasWidth / 2;
   const centerY = canvasHeight * 0.35; // 中心偏上
   
-  // 计算每张图片的位置，避免重叠
-  const imageSize = 150;
-  const spacing = 180;
+  // 计算每张图片的位置，避免重叠 - 调整为更紧凑的布局
+  const imageSize = 120; // 减小图片尺寸
+  const spacing = 140; // 减小间距
   const totalWidth = (selectedImages.length - 1) * spacing;
   const startX = centerX - totalWidth / 2;
   
   // 依次插入每张图片
   selectedImages.forEach((url, index) => {
     const x = startX + index * spacing;
-    const y = centerY + (index % 2 === 0 ? -30 : 30); // 交错排列避免完全重叠
+    const y = centerY + (index % 2 === 0 ? -20 : 20); // 减小交错幅度
     
     fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
       if (!img) {
@@ -336,7 +336,7 @@ const handleRandomPackage = useCallback(() => {
         return;
       }
       
-      img.scaleToWidth(imageSize);
+      img.scaleToWidth(imageSize); // 使用调整后的尺寸
       img.set({
         left: x,
         top: y,
@@ -375,13 +375,22 @@ const handleAddAsset = (url: string) => {
 fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
       if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
+      
+      // 计算画布顶部位置，避免被素材包抽屉遮挡
+      const canvasWidth = canvas.getWidth();
+      const canvasHeight = canvas.getHeight();
+      const topAreaY = canvasHeight * 0.15; // 顶部区域，避免被抽屉遮挡
+      const centerX = canvasWidth / 2;
+      
       img.set({
+        left: centerX - 100, // 居中显示
+        top: topAreaY,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
         angle: (Math.random() * 10 - 5)
       });
+      
       canvas.add(img);
       animateIn(img);
-      (canvas as any).centerObject?.(img);
       (canvas as any).setActiveObject?.(img);
       canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.forEachObject(obj=>obj.setCoords());
