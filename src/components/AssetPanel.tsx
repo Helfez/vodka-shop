@@ -67,7 +67,7 @@ export default function AssetPanel({ open, onClose, onSelect, used }: AssetPanel
 
       {/* assets grid (simple flex wrap, can upgrade to react-window later) */}
       <div className="p-4 overflow-y-auto h-[calc(100vh-160px)] custom-scrollbar">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
           {assets.map((file) => {
             const url = file;
             const disabled = used.has(url);

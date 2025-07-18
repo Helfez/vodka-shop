@@ -285,6 +285,10 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
 fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
       if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
+      img.set({
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 10, offsetX: 0, offsetY: 4 }),
+        angle: (Math.random() * 10 - 5)
+      });
       canvas.add(img);
       (canvas as any).centerObject?.(img);
       (canvas as any).setActiveObject?.(img);
@@ -309,6 +313,10 @@ console.log('handleAddAsset done');
     reader.onload = () => {
       fabric.Image.fromURL(reader.result as string).then((img: any) => {
         img.scaleToWidth(200);
+        img.set({
+          shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 10, offsetX: 0, offsetY: 4 }),
+          angle: (Math.random() * 10 - 5) // -5° ~ +5°
+        });
         canvas.add(img);
         (canvas as any).centerObject?.(img);
         (canvas as any).setActiveObject?.(img);

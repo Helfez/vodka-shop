@@ -29,11 +29,7 @@ export default function MobileBoard() {
       <div
         className={`fixed inset-x-0 bottom-0 z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-[calc(100%-32px)]'} flex flex-col h-[100dvh] pb-[env(safe-area-inset-bottom)] overflow-y-auto rounded-t-xl shadow-lg`}
       >
-        {/* grip / toggle */}
-        <div
-          className="w-8 h-1.5 bg-gray-400 rounded-full my-3 ml-4 cursor-pointer"
-          onClick={() => setDrawerOpen(prev => !prev)}
-        />
+        {/* single central handle – tap to toggle */}
         {/* handle */}
         <div
           className="w-12 h-1.5 bg-gray-400 rounded-full mx-auto my-2 cursor-pointer"
