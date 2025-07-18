@@ -9,7 +9,7 @@ import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 interface StyleOption { id: string; name: string; img: string; }
 const STYLE_OPTIONS: StyleOption[] = [
   { id: 'nomoral', name: 'Normal', img: '/Style_img/Ghibli Style.png' },
-  { id: 'PowerGirls', name: 'PowerGirls', img: '/Style_img/LEGO Style.png' },
+  { id: 'PowerGirls', name: 'PowerGirls', img: '/Style_img/Powerpuff Girls Style.png' },
   { id: 'WearableSculpture', name: 'Wearable Sculpture', img: '/Style_img/Pop Mart Style.png' },
 ];
 
