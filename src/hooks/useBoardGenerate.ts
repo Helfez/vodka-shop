@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import { DEFAULT_PIPELINE_PROMPTS } from '../pipelinePrompts';
 
+import type { PipelinePrompts } from '../pipelinePrompts';
 interface Options {
   canvas: HTMLCanvasElement | null;
   templateId: string;
+  prompts?: PipelinePrompts;
   userPrompt?: string;
 }
 
@@ -62,7 +64,7 @@ export function useBoardGenerate() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageUrl: boardUrl,
-          prompts: DEFAULT_PIPELINE_PROMPTS,
+          prompts: options.prompts ?? DEFAULT_PIPELINE_PROMPTS,
           branch: true,
         }),
       });

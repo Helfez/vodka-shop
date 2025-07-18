@@ -8,13 +8,9 @@ import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
 // Style option definitions
 interface StyleOption { id: string; name: string; img: string; }
 const STYLE_OPTIONS: StyleOption[] = [
-  { id: 'ghibli', name: 'Ghibli', img: '/Style_img/Ghibli Style.png' },
-  { id: 'lego', name: 'LEGO', img: '/Style_img/LEGO Style.png' },
-  { id: 'popmart', name: 'Pop Mart', img: '/Style_img/Pop Mart Style.png' },
-  { id: 'cthulhu', name: 'Cthulhu-Inspired', img: '/Style_img/Cthulhu-Inspired Style.png' },
-  { id: 'dnd', name: 'D&D', img: '/Style_img/D&D Style.png' },
-  { id: 'ppg', name: 'Powerpuff Girls', img: '/Style_img/Powerpuff Girls Style.png' },
-  { id: 'warhammer', name: 'Warhammer', img: '/Style_img/Warhammer Style.png' },
+  { id: 'nomoral', name: 'Normal', img: '/Style_img/Ghibli Style.png' },
+  { id: 'PowerGirls', name: 'PowerGirls', img: '/Style_img/LEGO Style.png' },
+  { id: 'WearableSculpture', name: 'Wearable Sculpture', img: '/Style_img/Pop Mart Style.png' },
 ];
 
 interface CanvasPaneProps { onGenerated?: (url: string) => void; onLoadingChange?: (loading:boolean)=>void; }
@@ -39,7 +35,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       .filter(Boolean);
     setUsedAssets(new Set(urls));
   }, [canvas]);
-  const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
+  const [selectedTheme, setSelectedTheme] = useState<string>(STYLE_OPTIONS[0].id);
 
   /* ---------------- Undo / Redo history ---------------- */
   const historyRef = useRef<string[]>([]);
@@ -85,15 +81,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     brush.width = penSize;
   },[penColor,penSize,canvas]);
 
-  const toggleStyle = (id: string) => {
-    setSelectedStyles(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(s => s !== id);
-      }
-      if (prev.length >= 2) return prev; // max 2
-      return [...prev, id];
-    });
-  };
+  const chooseTheme = (id: string) => setSelectedTheme(id);
 
   // ---------------- Context Menu ----------------
   const [contextMenu, setContextMenu] = useState<{x:number;y:number;visible:boolean}>({x:0,y:0,visible:false});
@@ -414,8 +402,7 @@ console.log('handleAddAsset done');
         style={{visibility: styleOpen ? 'visible':'hidden'}}>
         <div className="flex gap-3">
         {STYLE_OPTIONS.map(opt => {
-          const active = selectedStyles.includes(opt.id);
-          const disabled = maxChosen && !active;
+          const active = selectedTheme===opt.id;
           return (
             <button
               key={opt.id}
