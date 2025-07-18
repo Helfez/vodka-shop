@@ -70,7 +70,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
 
   // pen settings
-  const COLORS = ['#ff4d4f','#fa8c16','#fadb14','#52c41a','#1677ff','#722ed1','#1f1f1f'];
+  const COLORS = ['#1f1f1f','#ff4d4f','#fa8c16','#fadb14','#52c41a','#1677ff','#722ed1'];
   const [penColor,setPenColor]=useState(COLORS[0]);
   const [penSize,setPenSize]=useState(4);
 
@@ -502,9 +502,12 @@ console.log('handleAddAsset done');
         >↶</button>
         {/* Asset Pack button */}
         <button
-          className={`w-14 h-14 rounded-full bg-cyan-500 text-white shadow-lg flex items-center justify-center ${assetOpen?'ring-4 ring-cyan-300':''}`}
+          className={`w-16 h-16 rounded-full bg-cyan-500 text-white shadow-lg flex flex-col items-center justify-center ${assetOpen?'ring-4 ring-cyan-300':''}`}
           onClick={()=>setAssetOpen(true)}
-        >🖼️</button>
+        >
+          <span className="text-lg">🖼️</span>
+          <span className="text-xs font-medium">素材</span>
+        </button>
         {/* 主题选择按钮已移除，现在常驻显示 */}
 
           {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
