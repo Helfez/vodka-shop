@@ -29,8 +29,16 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [styleHint,setStyleHint] = useState(true);
   // asset panel state
   const [assetOpen,setAssetOpen] = useState(false);
-  const usedAssets = useRef<Set<string>>(new Set());
+  const [usedAssets, setUsedAssets] = useState<Set<string>>(new Set());
   useEffect(()=>{const t=setTimeout(()=>setStyleHint(false),1500);return()=>clearTimeout(t);},[]);
+  // 重新扫描画布中的图片，生成已用素材集合
+  const recomputeUsedAssets = useCallback(() => {
+    if (!canvas) return;
+    const urls = canvas.getObjects('image')
+      .map(o => ((o as any).getSrc?.() || (o as any).src) as string)
+      .filter(Boolean);
+    setUsedAssets(new Set(urls));
+  }, [canvas]);
   const [selectedStyles, setSelectedStyles] = useState<string[]>([STYLE_OPTIONS[0].id]);
 
   /* ---------------- Undo / Redo history ---------------- */
@@ -181,7 +189,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     canvas.on('path:created', handlePath);
     canvas.on('object:added', handleAdded);
     canvas.on('object:modified', handleAdded);
-    canvas.on('object:removed', () => saveHistory());
+    canvas.on('object:removed', () => { saveHistory(); recomputeUsedAssets(); });
     return () => {
       canvas.off('path:created', handlePath);
       canvas.off('object:added', handleAdded);
@@ -207,6 +215,7 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       canvas.setViewportTransform([1,0,0,1,0,0]);
       canvas.forEachObject(obj => obj.setCoords());
       canvas.requestRenderAll();
+      recomputeUsedAssets();
       setPointer(() => {
         const nxt = idx;
         pointerRef.current = nxt;
@@ -269,11 +278,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   }, [canvas]);
 
   const handleAddAsset = (url: string) => {
-    console.log('handleAddAsset called', url, 'canvas?', canvas, 'used?', usedAssets.current.has(url));
+    console.log('handleAddAsset called', url, 'canvas?', canvas, 'used?', usedAssets.has(url));
     if (!canvas) return;
-    if (usedAssets.current.has(url)) return;
+    if (usedAssets.has(url)) return;
     console.log('handleAddAsset start',url);
-fabric.Image.fromURL(url).then((img: any) => {
+fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
       if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
       canvas.add(img);
@@ -283,7 +292,11 @@ fabric.Image.fromURL(url).then((img: any) => {
       canvas.forEachObject(obj=>obj.setCoords());
       canvas.requestRenderAll();
       saveHistory();
-      usedAssets.current.add(url);
+      setUsedAssets(prev => {
+        const next = new Set(prev);
+        next.add(url);
+        return next;
+      });
 console.log('handleAddAsset done');
     });
   };
@@ -428,7 +441,7 @@ console.log('handleAddAsset done');
         open={assetOpen}
         onClose={()=>setAssetOpen(false)}
         onSelect={handleAddAsset}
-        used={usedAssets.current}
+        used={usedAssets}
       />
     </div>
   );
