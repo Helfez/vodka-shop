@@ -29,18 +29,19 @@ export default function MobileBoard() {
       <div
         className={`fixed inset-x-0 bottom-[env(safe-area-inset-bottom)] z-40 bg-white transform transition-transform duration-300 ease-out ${drawerOpen ? 'translate-y-0' : 'translate-y-[calc(100%-80px)]'} flex flex-col h-[100dvh] overflow-y-auto rounded-t-xl shadow-lg`}
       >
-        {/* single central handle – tap to toggle */}
-        {/* handle */}
-        <div
-          className="absolute -top-6 left-1/2 -translate-x-1/2 w-20 h-6 flex items-center justify-center cursor-pointer z-50"
-          onClick={() => setDrawerOpen(!drawerOpen)}
-        >
-          <div className="w-14 h-1.5 bg-gray-400 rounded-full" />
-        </div>
+
         <div className="pt-12 px-3 flex-grow">
           <PreviewPane imageUrl={previewUrl} loading={generating} />
         </div>
       </div>
+
+      {/* Left grip toggle button */}
+      <button
+        className="fixed left-2 bottom-[calc(env(safe-area-inset-bottom)+20px)] z-50 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center border border-gray-300"
+        onClick={() => setDrawerOpen(o=>!o)}
+      >
+        <span className="block w-5 h-0.5 bg-gray-500 rotate-90" />
+      </button>
     </div>
   );
 }
