@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import AssetPanel from './AssetPanel.js';
 import * as fabric from 'fabric';
-import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
+import { useBoardGenerate } from '../hooks/useBoardGenerate';
+import { THEME_BRANCH } from '../pipelinePrompts';
 
 // Basic toolbar actions
 // Style option definitions
@@ -438,7 +439,8 @@ console.log('handleAddAsset done');
             // Use selected theme for generation
             generate({ 
               canvas: canvasRef.current, 
-              templateId: selectedTheme, 
+              templateId: selectedTheme,
+              branch: THEME_BRANCH[selectedTheme] || false,
               userPrompt: `Generate with ${selectedTheme} theme` 
             });
           }}
