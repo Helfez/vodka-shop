@@ -286,6 +286,88 @@ const animateIn = (obj: fabric.Object) => {
   });
 };
 
+// 检测画布是否为空（没有任何对象）
+const isCanvasEmpty = useCallback(() => {
+  if (!canvas) return true;
+  return canvas.getObjects().length === 0;
+}, [canvas]);
+
+// 随机选择每个分组一张图片并插入到画板
+const handleRandomPackage = useCallback(() => {
+  if (!canvas || !isCanvasEmpty()) return;
+  
+  // 构建所有分组的图片索引
+  const buildAssetIndex = (glob: Record<string, any>) => Object.values(glob) as string[];
+  const assetGroups = {
+    style: buildAssetIndex(import.meta.glob('/src/assets/style/*', { eager: true, import: 'default' } as any)),
+    main: buildAssetIndex(import.meta.glob('/src/assets/main/*', { eager: true, import: 'default' } as any)),
+    prop: buildAssetIndex(import.meta.glob('/src/assets/prop/*', { eager: true, import: 'default' } as any)),
+    symbol: buildAssetIndex(import.meta.glob('/src/assets/symbol/*', { eager: true, import: 'default' } as any)),
+  };
+  
+  // 从每个分组随机选择一张图片
+  const selectedImages: string[] = [];
+  Object.values(assetGroups).forEach(group => {
+    if (group.length > 0) {
+      const randomIndex = Math.floor(Math.random() * group.length);
+      selectedImages.push(group[randomIndex]);
+    }
+  });
+  
+  // 计算画布中心偏上的位置
+  const canvasWidth = canvas.getWidth();
+  const canvasHeight = canvas.getHeight();
+  const centerX = canvasWidth / 2;
+  const centerY = canvasHeight * 0.35; // 中心偏上
+  
+  // 计算每张图片的位置，避免重叠
+  const imageSize = 150;
+  const spacing = 180;
+  const totalWidth = (selectedImages.length - 1) * spacing;
+  const startX = centerX - totalWidth / 2;
+  
+  // 依次插入每张图片
+  selectedImages.forEach((url, index) => {
+    const x = startX + index * spacing;
+    const y = centerY + (index % 2 === 0 ? -30 : 30); // 交错排列避免完全重叠
+    
+    fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
+      if (!img) {
+        console.error('fabric load failed', url);
+        return;
+      }
+      
+      img.scaleToWidth(imageSize);
+      img.set({
+        left: x,
+        top: y,
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
+        angle: (Math.random() * 10 - 5)
+      });
+      
+      canvas.add(img);
+      animateIn(img);
+      canvas.setViewportTransform([1,0,0,1,0,0]);
+      canvas.forEachObject(obj => obj.setCoords());
+      canvas.requestRenderAll();
+      
+      // 更新已使用的资产
+      setUsedAssets(prev => {
+        const next = new Set(prev);
+        next.add(url);
+        return next;
+      });
+    });
+  });
+  
+  // 保存历史记录
+  setTimeout(() => {
+    saveHistory();
+  }, 100);
+  
+  console.log('Random package inserted:', selectedImages.length, 'images');
+}, [canvas, isCanvasEmpty, saveHistory]);
+
 const handleAddAsset = (url: string) => {
     console.log('handleAddAsset called', url, 'canvas?', canvas, 'used?', usedAssets.has(url));
     if (!canvas) return;
@@ -464,6 +546,8 @@ console.log('handleAddAsset done');
         onClose={()=>setAssetOpen(false)}
         onSelect={handleAddAsset}
         used={usedAssets}
+        onRandomPackage={handleRandomPackage}
+        canUseRandomPackage={isCanvasEmpty()}
       />
     </div>
   );
