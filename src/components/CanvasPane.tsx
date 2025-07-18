@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import AssetPanel from './AssetPanel.js';
 import * as fabric from 'fabric';
-import { useBoardGenerate } from '../hooks/useBoardGenerate';
-import { THEME_BRANCH } from '../pipelinePrompts';
+import { useBoardGenerate } from '../hooks/useBoardGenerate.js';
+import { THEME_BRANCH } from '../pipelinePrompts.js';
 
 // Basic toolbar actions
 // Style option definitions
@@ -440,8 +440,7 @@ console.log('handleAddAsset done');
             generate({ 
               canvas: canvasRef.current, 
               templateId: selectedTheme,
-              branch: THEME_BRANCH[selectedTheme] || false,
-              userPrompt: `Generate with ${selectedTheme} theme` 
+              branch: THEME_BRANCH[selectedTheme] || false
             });
           }}
           className={`absolute top-2 left-2 z-20 w-10 h-10 rounded-full text-lg shadow-md flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}

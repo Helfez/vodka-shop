@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react';
-import { DEFAULT_PIPELINE_PROMPTS, PipelinePrompts, THEME_PROMPTS } from '../pipelinePrompts';
-
-import type { PipelinePrompts } from '../pipelinePrompts';
+import { DEFAULT_PIPELINE_PROMPTS, THEME_PROMPTS } from '../pipelinePrompts.js';
+import type { PipelinePrompts } from '../pipelinePrompts.js';
 interface Options {
   canvas: HTMLCanvasElement | null;
   templateId: string;
   prompts?: PipelinePrompts;
   branch?: boolean;
-  userPrompt?: string;
 }
 
 interface Result {
@@ -20,7 +18,7 @@ export function useBoardGenerate() {
   const [result, setResult] = useState<Result | null>(null);
 
   const generate = useCallback(async (options: Options) => {
-    const { canvas, templateId, prompts, branch = true, userPrompt } = options;
+    const { canvas, templateId, prompts, branch = true } = options;
     if (!canvas) {
       setError('Canvas not ready');
       return;
