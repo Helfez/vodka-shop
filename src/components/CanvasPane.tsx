@@ -131,6 +131,12 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       isDrawingMode: true,
       backgroundColor: '#ffffff',
       selection: true,
+      // 移动端触摸手势支持
+      allowTouchScrolling: true,
+      enableRetinaScaling: true,
+      // 启用对象变换控件
+      uniformScaling: false, // 允许非等比缩放
+      uniScaleTransform: false,
     });
 
     // Pencil style resembling sketch
@@ -341,7 +347,23 @@ const handleRandomPackage = useCallback(() => {
         left: x,
         top: y,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
-        angle: (Math.random() * 10 - 5)
+        angle: (Math.random() * 10 - 5),
+        // 移动端触摸手势支持
+        lockMovementX: false,
+        lockMovementY: false,
+        lockScalingX: false,
+        lockScalingY: false,
+        lockRotation: false,
+        // 启用触摸缩放
+        touchCornerSize: 24, // 移动端触摸控制点大小
+        cornerSize: 12, // 桌面端控制点大小
+        transparentCorners: false,
+        cornerColor: '#00bcd4',
+        cornerStrokeColor: '#ffffff',
+        borderColor: '#00bcd4',
+        // 缩放限制
+        minScaleLimit: 0.1,
+        maxScaleLimit: 5
       });
       
       canvas.add(img);
@@ -386,7 +408,23 @@ fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
         left: centerX - 100, // 居中显示
         top: topAreaY,
         shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
-        angle: (Math.random() * 10 - 5)
+        angle: (Math.random() * 10 - 5),
+        // 移动端触摸手势支持
+        lockMovementX: false,
+        lockMovementY: false,
+        lockScalingX: false,
+        lockScalingY: false,
+        lockRotation: false,
+        // 启用触摸缩放
+        touchCornerSize: 24, // 移动端触摸控制点大小
+        cornerSize: 12, // 桌面端控制点大小
+        transparentCorners: false,
+        cornerColor: '#00bcd4',
+        cornerStrokeColor: '#ffffff',
+        borderColor: '#00bcd4',
+        // 缩放限制
+        minScaleLimit: 0.1,
+        maxScaleLimit: 5
       });
       
       canvas.add(img);
