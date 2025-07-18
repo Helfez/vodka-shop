@@ -4,10 +4,14 @@ import type { OpenAI as OpenAIClient } from 'openai';
 // IMPORTANT! Set the runtime to edge
 //export const runtime = 'edge';
 
-// Create an OpenAI API client, configured for Aimixhub
+// Create an OpenAI API client, configured for Azure OpenAI
 const openai = new OpenAI({
-  apiKey: process.env.AIMIXHUB_API_KEY,
-  baseURL: 'https://aihubmix.com/v1',
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
+  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}`,
+  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview' },
+  defaultHeaders: {
+    'api-key': process.env.AZURE_OPENAI_API_KEY,
+  },
 });
 
 interface RequestBody {
@@ -113,9 +117,9 @@ When responding, you MUST return a function_call to either "generate_image" or "
       finalMessages = [systemPrompt, ...messages];
     }
 
-    // Request the chat completion from Aimixhub
+    // Request the chat completion from Azure OpenAI
     const response = await openai.chat.completions.create({
-      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o' : 'gpt-4.1-mini',
+      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o' : 'gpt-4o-mini',
       function_call: 'auto',
       functions: [
         {
