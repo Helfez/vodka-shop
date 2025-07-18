@@ -23,9 +23,11 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [styleOpen,setStyleOpen]=useState(false);
   // bounce hint for style button on first load
   const [styleHint,setStyleHint] = useState(true);
+  // theme selection state: default to first theme
+  const [selectedTheme, setSelectedTheme] = useState<string>('nomoral');
   // asset panel state
-  const [assetOpen,setAssetOpen] = useState(false);
-  const [usedAssets, setUsedAssets] = useState<Set<string>>(new Set());
+  const [assetOpen,setAssetOpen]=useState(false);
+  const [usedAssets,setUsedAssets]=useState(new Set<string>());
   useEffect(()=>{const t=setTimeout(()=>setStyleHint(false),1500);return()=>clearTimeout(t);},[]);
   // 重新扫描画布中的图片，生成已用素材集合
   const recomputeUsedAssets = useCallback(() => {
@@ -35,7 +37,6 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
       .filter(Boolean);
     setUsedAssets(new Set(urls));
   }, [canvas]);
-  const [selectedTheme, setSelectedTheme] = useState<string>(STYLE_OPTIONS[0].id);
 
   /* ---------------- Undo / Redo history ---------------- */
   const historyRef = useRef<string[]>([]);
@@ -121,7 +122,8 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     closeContextMenu();
   };
 
-  const maxChosen = selectedStyles.length >= 2;
+  // Theme selection is single choice, no max limit needed
+  const disabled = loading; // Disable theme selection during generation
 
   // Initialise Fabric.js once
   useEffect(() => {
@@ -271,12 +273,12 @@ const animateIn = (obj: fabric.Object) => {
   const { scaleX = 1, scaleY = 1 } = obj;
   obj.set({ scaleX: 0.1, scaleY: 0.1 });
   canvas.requestRenderAll();
-  obj.animate('scaleX', scaleX, {
+  obj.animate({ scaleX }, {
     duration: 400,
     onChange: canvas.renderAll.bind(canvas),
     easing: fabric.util.ease.easeOutBack,
   });
-  obj.animate('scaleY', scaleY, {
+  obj.animate({ scaleY }, {
     duration: 400,
     onChange: canvas.renderAll.bind(canvas),
     easing: fabric.util.ease.easeOutBack,
@@ -407,7 +409,7 @@ console.log('handleAddAsset done');
             <button
               key={opt.id}
               type="button"
-              onClick={() => !disabled && toggleStyle(opt.id)}
+              onClick={() => !disabled && chooseTheme(opt.id)}
               className={`ghost-btn !w-32 !h-32 shrink-0 flex items-center justify-center relative group transition transform
                 ${active ? 'ring-4 ring-inset ring-cyan-500' : 'hover:ring-2 hover:ring-cyan-400'}
                 ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
@@ -433,8 +435,12 @@ console.log('handleAddAsset done');
         <button
           disabled={loading}
           onClick={() => {
-            const styleText = selectedStyles.map(s => `style:${s}`).join(' ');
-            generate({ canvas: canvasRef.current, templateId: 'poster', userPrompt: styleText });
+            // Use selected theme for generation
+            generate({ 
+              canvas: canvasRef.current, 
+              templateId: selectedTheme, 
+              userPrompt: `Generate with ${selectedTheme} theme` 
+            });
           }}
           className={`absolute top-2 left-2 z-20 w-10 h-10 rounded-full text-lg shadow-md flex items-center justify-center transition-colors ${loading?'bg-gray-300 text-gray-500':'bg-cyan-500 text-white hover:bg-cyan-600'}`}
         >⚡</button>
