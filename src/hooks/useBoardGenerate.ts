@@ -40,12 +40,28 @@ export function useBoardGenerate() {
 
       const boardDataUrl = off.toDataURL('image/png');
 
+      // 先上传到 Cloudinary，获取可公开访问的 URL，供 GPT-4o vision 使用
+      let boardUrl = boardDataUrl;
+      try {
+        const upBoard = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: boardDataUrl }),
+        });
+        if (upBoard.ok) {
+          const { url: uploadedUrl } = await upBoard.json();
+          if (uploadedUrl) boardUrl = uploadedUrl;
+        }
+      } catch (err) {
+        console.warn('Upload board image failed, fallback to dataUrl', err);
+      }
+
       // Call multi-agent pipeline backend
       const resp = await fetch('/api/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageUrl: boardDataUrl,
+          imageUrl: boardUrl,
           prompts: DEFAULT_PIPELINE_PROMPTS,
           branch: true,
         }),

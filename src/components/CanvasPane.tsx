@@ -277,7 +277,29 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
     return () => obs.disconnect();
   }, [canvas]);
 
-  const handleAddAsset = (url: string) => {
+  // 图片进入动画
+const animateIn = (obj: fabric.Object) => {
+  if(!canvas) return;
+  const { scaleX = 1, scaleY = 1 } = obj;
+  obj.set({ scaleX: 0.1, scaleY: 0.1, opacity: 0 });
+  canvas.requestRenderAll();
+  obj.animate('scaleX', scaleX, {
+    duration: 400,
+    onChange: canvas.renderAll.bind(canvas),
+    easing: fabric.util.ease.easeOutBack,
+  });
+  obj.animate('scaleY', scaleY, {
+    duration: 400,
+    onChange: canvas.renderAll.bind(canvas),
+    easing: fabric.util.ease.easeOutBack,
+  });
+  obj.animate('opacity', 1, {
+    duration: 300,
+    onChange: canvas.renderAll.bind(canvas),
+  });
+};
+
+const handleAddAsset = (url: string) => {
     console.log('handleAddAsset called', url, 'canvas?', canvas, 'used?', usedAssets.has(url));
     if (!canvas) return;
     if (usedAssets.has(url)) return;
@@ -286,10 +308,11 @@ fabric.Image.fromURL(url, { crossOrigin: 'anonymous' }).then((img: any) => {
       if(!img){console.error('fabric load failed',url);return;}
       img.scaleToWidth(200);
       img.set({
-        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 10, offsetX: 0, offsetY: 4 }),
+        shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
         angle: (Math.random() * 10 - 5)
       });
       canvas.add(img);
+      animateIn(img);
       (canvas as any).centerObject?.(img);
       (canvas as any).setActiveObject?.(img);
       canvas.setViewportTransform([1,0,0,1,0,0]);
@@ -314,10 +337,11 @@ console.log('handleAddAsset done');
       fabric.Image.fromURL(reader.result as string).then((img: any) => {
         img.scaleToWidth(200);
         img.set({
-          shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.3)', blur: 10, offsetX: 0, offsetY: 4 }),
+          shadow: new fabric.Shadow({ color: 'rgba(0,0,0,0.45)', blur: 15, offsetX: 0, offsetY: 6 }),
           angle: (Math.random() * 10 - 5) // -5° ~ +5°
         });
         canvas.add(img);
+        animateIn(img);
         (canvas as any).centerObject?.(img);
         (canvas as any).setActiveObject?.(img);
         canvas.setViewportTransform([1,0,0,1,0,0]);
