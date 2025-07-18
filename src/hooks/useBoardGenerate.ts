@@ -6,6 +6,7 @@ interface Options {
   canvas: HTMLCanvasElement | null;
   templateId: string;
   prompts?: PipelinePrompts;
+  branch?: boolean;
   userPrompt?: string;
 }
 
@@ -18,7 +19,8 @@ export function useBoardGenerate() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
 
-  const generate = useCallback(async ({ canvas }: Options) => {
+  const generate = useCallback(async (options: Options) => {
+    const { canvas, templateId, prompts, branch = true, userPrompt } = options;
     if (!canvas) {
       setError('Canvas not ready');
       return;
@@ -64,8 +66,10 @@ export function useBoardGenerate() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageUrl: boardUrl,
-          prompts: options.prompts ?? DEFAULT_PIPELINE_PROMPTS,
-          branch: true,
+          templateId,
+          userPrompt,
+          prompts: prompts ?? DEFAULT_PIPELINE_PROMPTS,
+          branch,
         }),
       });
 

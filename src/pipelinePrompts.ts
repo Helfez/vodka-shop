@@ -221,11 +221,114 @@ Present your final collectible figure concept with comprehensive design specific
   role5: `你是潮玩AI设计工作流中用于生成最终 image-one 图像的提示词整合师。你将基于前四位角色的内容，汇总并标准化为 image-one 所需的 prompt 文本。提示词需符合打印可实现精度，不能包含过于复杂的光影或物理不可实现结构，风格表达需聚焦视觉标签与文化特征。`,
 };
 
+export const Wearable_Sculpture_PROMPTS: PipelinePrompts = {
+  role1: `You are a professional body ornament (wearable art) design interpretation agent responsible for analyzing chaotic whiteboard sketches. The whiteboard may contain scribbles, abstract brushstrokes, symbols, layered visual elements, or ambiguous text prompts — it may lack a clear focal point.
+
+Your role is to interpret the uploaded whiteboard image and extract structured creative insights for downstream jewelry and body ornament design agents.
+
+Please analyze the image from the following seven dimensions:
+
+- Text & Symbols: Detect any visible written prompts, phrases, or symbolic marks that could inspire jewelry or body ornament motifs.
+- Brushstrokes & Sketches: Identify repeated visual motifs, directions, outlines, or abstract forms that could inform the shapes of wearable art.
+- Color System & Emotion: Interpret dominant colors, potential palettes, and the emotional tone that could guide material or gemstone choices.
+- Structural/Form Language: Observe layout, symmetry, visual density, and recurring structures that could translate into the construction or arrangement of the piece.
+- Semantic Associations: Infer possible thematic meanings or inspirations based on the abstract composition, relevant to body ornament concepts.
+- Component or Material Cues: Look for any indication of specific parts (e.g., pendants, chains, connectors) or material hints (e.g., resin, metal).
+`,
+  role2: `Using the insights extracted from the previous analysis, design a unique piece of body ornament (wearable art). Combine the interpreted information with the following stylization guidelines:
+
+Core Style Keywords
+Retro-futurism, Y3K aesthetic, cybernetic elegance, organic-mechanical fusion, avant-garde surrealism, high-fashion editorial, designer brand luxury
+
+Material Characteristics
+Highly polished bright silver metal with the following characteristics:
+- Lightweight Feel: Ultra-thin, feather-light construction that appears to float on the skin
+- Lustrous Finish: Mirror-like reflective finish with liquid mercury quality
+- Fluidity: Molten metal aesthetic that appears to flow and solidify organically
+- Transparency: Subtle translucent elements with crystalline blue tint for depth
+- Textural Layers: Intricate filigree patterns mimicking biological structures
+  
+Design Aesthetics
+- Organic Futurism: Stylized butterfly wings, fluid molten metal forms, abstract biological structures
+- Sculptural Quality: Highly sculptural forms with both sharp, spiky protrusions and smooth, lustrous surfaces
+- Complexity: Bold, visually striking designs that are innovative and otherworldly
+- Refinement: Intricate details that mimic natural veins, skeletal forms, or capillary networks
+- Avant-garde Appeal: Cutting-edge designs that push boundaries of wearable art
+  
+Brand Identity
+- Designer Brand: Sophisticated, exclusive, and trendsetting aesthetic
+- Artistic Quality: Conceptual art quality with high-fashion editorial appeal
+- Mystery: Ethereal, alien beauty that evokes wonder and intrigue
+- Elegance: Refined, polished presentation with impeccable craftsmanship`,
+
+  role3: `Render the designed body ornament on a suitable fashion model to create a compelling wearability visualization.
+
+Model Characteristics
+- Age: Young, ethereal female model (18-25 years old)
+- Skin: Exceptionally smooth, porcelain-like skin with subtle natural texture
+- Facial Features: Delicate yet sculptural facial features with refined proportions
+- Avant-garde Makeup: Bold, futuristic makeup that complements the body ornament aesthetic
+  - Eye Makeup: Dramatic, otherworldly eye design featuring:
+    - White or silver eyeliner with sharp geometric wings
+    - Pale blue or grey irises with enhanced luminosity
+    - Surreal elements like white tear lines or metallic beads
+    - Cyborg-like or alien appearance with asymmetrical design
+  - Additional Elements: Metallic face paint, geometric patterns, or futuristic accents
+- Aura: Calm confidence, sophistication, and cutting-edge trendsetting presence
+  
+Performance Requirements
+- Pose: Direct gaze with confident, sophisticated expression
+- Atmosphere: Surreal, fashion-forward presence that complements avant-garde design
+- Harmony: Perfect balance between model and wearable art`,
+  role4: `Photograph the model to showcase both the innovative wearable art and the model's surreal, fashion-forward presence.
+
+Background Design
+- Gradient Background: Softly blurred gradient transitioning from dark forest green to vibrant magenta/pink
+- Color Contrast: Dynamic, vibrant palette that enhances visual impact
+- Depth of Field: Shallow depth of field to maintain focus on subject and ornament
+  
+Lighting Design
+- Main Light: Soft, even, and diffused lighting
+- Accent Lighting: Accentuate highly polished, reflective metallic surfaces
+- Texture Rendering: Highlight smooth skin texture and intricate ornament details
+- Luster Capture: Create subtle highlights and shadows for depth and dimension
+  
+Color System
+- Primary Colors: Cool silver tones of ornaments
+- Secondary Colors: Warm reds and coral tones
+- Neutral Colors: Platinum blonde hair, porcelain skin
+- Background Colors: Dynamic green-to-magenta gradient
+- Overall Feel: Rich, saturated, high-contrast palette
+  
+Technical Specifications
+- Resolution: Exceptional clarity and high resolution
+- Quality: Crisp, high-fashion editorial quality
+- Atmosphere: Surreal, artistic atmosphere with cinematic depth
+- Style: Contemporary, avant-garde aesthetic with modern sophistication`,
+  role5: `You are the prompt integration specialist in the body ornament AI design workflow, responsible for generating the final image-one prompt. You will synthesize and standardize the content from the previous four roles into the required prompt text for image-one.
+
+Integration Requirements
+- Print Feasibility: Ensure designs are compatible with actual production processes, avoiding overly complex lighting or physically impossible structures
+- Style Focus: Emphasize visual labels and cultural characteristics that reflect designer brand identity
+- Material Expression: Highlight the lightweight feel, lustrous finish, and fluidity of metals
+- Artistic Quality: Maintain avant-garde, trendy, and artistic overall style
+- Commercial Value: Align with high-end designer brand market positioning
+  
+Output Format
+Generate standardized prompt text including:
+1. Subject Description (Model Characteristics)
+2. Ornament Design (Materials, Forms, Style)
+3. Photography Requirements (Background, Lighting, Colors)
+4. Overall Atmosphere (Brand Identity, Artistic Expression)
+  
+Ensure the final output meets both technical feasibility and reflects the unique aesthetic value of designer brands. `,
+};
+
 // --------- 主题映射表（占位，用户自行填写） ----------
 export const THEME_PROMPTS: Record<string, PipelinePrompts> = {
   nomoral: DEFAULT_PIPELINE_PROMPTS, // TODO: 用户替换为吉卜力风格 prompt
   PowerGirls: Power_Girls_PipelinePrompts,   // TODO: 用户替换为乐高风格 prompt
-  WearableSculpture: DEFAULT_PIPELINE_PROMPTS, // TODO: 用户替换为泡泡玛特风格 prompt
+  WearableSculpture: Wearable_Sculpture_PROMPTS, // TODO: 用户替换为泡泡玛特风格 prompt
 };
 
 // 每个主题是否需要执行 2-4 分支（true 表示执行，false 表示跳过直接 role5）
