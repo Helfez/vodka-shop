@@ -278,6 +278,6 @@ export const THEME_PROMPTS: Record<string, PipelinePrompts> = {
 // 每个主题是否需要执行 2-4 分支（true 表示执行，false 表示跳过直接 role5）
 export const THEME_BRANCH: Record<string, boolean> = {
   nomoral: false,
-  PowerGirls: true,  // role2/role3 已清空，直接执行 role5
-  WearableSculpture: true,
+  PowerGirls: false,  // role2/role3 已清空，直接执行 role5
+  WearableSculpture: false,  // 直接执行 role1 → role5
 };

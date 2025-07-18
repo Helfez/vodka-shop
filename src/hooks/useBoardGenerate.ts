@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { DEFAULT_PIPELINE_PROMPTS } from '../pipelinePrompts';
+import { DEFAULT_PIPELINE_PROMPTS, PipelinePrompts, THEME_PROMPTS } from '../pipelinePrompts';
 
 import type { PipelinePrompts } from '../pipelinePrompts';
 interface Options {
@@ -61,14 +61,16 @@ export function useBoardGenerate() {
       }
 
       // Call multi-agent pipeline backend
+      // 根据 templateId 选择对应的主题 prompts
+      const themePrompts = templateId ? THEME_PROMPTS[templateId] : DEFAULT_PIPELINE_PROMPTS;
+      const finalPrompts = prompts ?? themePrompts ?? DEFAULT_PIPELINE_PROMPTS;
+      
       const resp = await fetch('/api/pipeline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           imageUrl: boardUrl,
-          templateId,
-          userPrompt,
-          prompts: prompts ?? DEFAULT_PIPELINE_PROMPTS,
+          prompts: finalPrompts,
           branch,
         }),
       });
