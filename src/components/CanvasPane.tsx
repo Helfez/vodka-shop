@@ -9,9 +9,9 @@ import { THEME_BRANCH } from '../pipelinePrompts.js';
 // Style option definitions
 interface StyleOption { id: string; name: string; img: string; }
 const STYLE_OPTIONS: StyleOption[] = [
-  { id: 'nomoral', name: 'Normal', img: '/Style_img/Ghibli Style.png' },
-  { id: 'PowerGirls', name: 'PowerGirls', img: '/Style_img/Powerpuff Girls Style.png' },
-  { id: 'WearableSculpture', name: 'Wearable Sculpture', img: '/Style_img/Pop Mart Style.png' },
+  { id: 'nomoral', name: 'Normal', img: '/Style_img/normal.PNG' },
+  { id: 'PowerGirls', name: 'PowerGirls', img: '/Style_img/powergirl.PNG' },
+  { id: 'WearableSculpture', name: 'Wearable Sculpture', img: '/Style_img/body.PNG' },
 ];
 
 interface CanvasPaneProps { onGenerated?: (url: string) => void; onLoadingChange?: (loading:boolean)=>void; }
@@ -21,15 +21,13 @@ export function CanvasPane({ onGenerated, onLoadingChange }: CanvasPaneProps) {
   const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
   const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('select');
   // style selection state: default first option checked
-  const [styleOpen,setStyleOpen]=useState(false);
-  // bounce hint for style button on first load
-  const [styleHint,setStyleHint] = useState(true);
+  // 主题选择现在常驻显示，不再需要 styleOpen 和 styleHint 状态
   // theme selection state: default to first theme
   const [selectedTheme, setSelectedTheme] = useState<string>('nomoral');
   // asset panel state
   const [assetOpen,setAssetOpen]=useState(false);
   const [usedAssets,setUsedAssets]=useState(new Set<string>());
-  useEffect(()=>{const t=setTimeout(()=>setStyleHint(false),1500);return()=>clearTimeout(t);},[]);
+  // 已移除 styleHint 相关的 useEffect，不再需要
   // 重新扫描画布中的图片，生成已用素材集合
   const recomputeUsedAssets = useCallback(() => {
     if (!canvas) return;
@@ -303,6 +301,7 @@ const handleRandomPackage = useCallback(() => {
     main: buildAssetIndex(import.meta.glob('/src/assets/main/*', { eager: true, import: 'default' } as any)),
     prop: buildAssetIndex(import.meta.glob('/src/assets/prop/*', { eager: true, import: 'default' } as any)),
     symbol: buildAssetIndex(import.meta.glob('/src/assets/symbol/*', { eager: true, import: 'default' } as any)),
+    color: buildAssetIndex(import.meta.glob('/src/assets/color/*', { eager: true, import: 'default' } as any)),
   };
   
   // 从每个分组随机选择一张图片
@@ -459,11 +458,7 @@ console.log('handleAddAsset done');
           className={`w-14 h-14 rounded-full bg-cyan-500 text-white shadow-lg flex items-center justify-center ${assetOpen?'ring-4 ring-cyan-300':''}`}
           onClick={()=>setAssetOpen(true)}
         >🖼️</button>
-        {/* Style drawer toggle */}
-        <button
-          className={`ghost-btn bg-white text-gray-700 ${styleHint?'animate-bounce':''}`}
-          onClick={() => setStyleOpen(o=>!o)}
-        >✨ Style</button>
+        {/* 主题选择按钮已移除，现在常驻显示 */}
 
           {error && <div className="text-red-500 text-sm mt-1">{error}</div>}
       {result && (
@@ -482,9 +477,8 @@ console.log('handleAddAsset done');
         </div>
       </div>
 
-      {/* Style picker */}
-      <div className={`transition-all duration-300 overflow-x-auto whitespace-nowrap pb-1 ${styleOpen?'max-h-44':'max-h-0'} ${styleOpen?'mt-3':'mt-0'}`}
-        style={{visibility: styleOpen ? 'visible':'hidden'}}>
+      {/* Style picker - 现在常驻显示 */}
+      <div className="overflow-x-auto whitespace-nowrap pb-1 mt-3">
         <div className="flex gap-3">
         {STYLE_OPTIONS.map(opt => {
           const active = selectedTheme===opt.id;

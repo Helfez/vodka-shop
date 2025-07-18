@@ -21,12 +21,13 @@ export default function AssetPanel({ open, onClose, onSelect, used, onRandomPack
       main: build(import.meta.glob('/src/assets/main/*', { eager: true, import: 'default' } as any)),
       prop: build(import.meta.glob('/src/assets/prop/*', { eager: true, import: 'default' } as any)),
       symbol: build(import.meta.glob('/src/assets/symbol/*', { eager: true, import: 'default' } as any)),
+      color: build(import.meta.glob('/src/assets/color/*', { eager: true, import: 'default' } as any)),
     };
   })();
 
-  // 添加 remix 分类到第一个位置
+  // 添加 remix 分类到第一个位置，yours 分类到最后
   const allCategories = Object.keys(index);
-  const categories = ['remix', ...allCategories];
+  const categories = ['remix', ...allCategories, 'yours'];
   const [activeCat, setActiveCat] = useState<string>('remix');
   const assets = index[activeCat] ?? [];
 
@@ -73,26 +74,43 @@ export default function AssetPanel({ open, onClose, onSelect, used, onRandomPack
       <div className="p-4 overflow-y-auto h-[calc(100vh-160px)] custom-scrollbar">
         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
           {activeCat === 'remix' ? (
-            // remix 分类：显示 random package 按钮
-            <button
-              onClick={onRandomPackage}
-              disabled={!canUseRandomPackage}
-              className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 border-dashed flex flex-col items-center justify-center text-center p-2 ${
-                canUseRandomPackage 
-                  ? 'border-cyan-500 bg-cyan-50 hover:bg-cyan-100 text-cyan-700' 
-                  : 'border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <div className="text-2xl mb-1">🎲</div>
-              <div className="text-xs font-medium">
-                Random<br />Package
-              </div>
-              {!canUseRandomPackage && (
-                <div className="text-xs mt-1 opacity-60">
-                  画布需为空
+            // remix 分类：显示 random package 按钮和提示文字
+            <>
+              <button
+                onClick={onRandomPackage}
+                disabled={!canUseRandomPackage}
+                className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 border-dashed flex flex-col items-center justify-center text-center p-2 ${
+                  canUseRandomPackage 
+                    ? 'border-cyan-500 bg-cyan-50 hover:bg-cyan-100 text-cyan-700' 
+                    : 'border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <div className="text-2xl mb-1">🎲</div>
+                <div className="text-xs font-medium">
+                  Random<br />Package
                 </div>
-              )}
-            </button>
+                {!canUseRandomPackage && (
+                  <div className="text-xs mt-1 opacity-60">
+                    画布需为空
+                  </div>
+                )}
+              </button>
+              {/* 提示文字 */}
+              <div className="col-span-full mt-4 text-center text-sm text-gray-500">
+                其他主题包待开发
+              </div>
+            </>
+          ) : activeCat === 'yours' ? (
+            // yours 分类：显示个人贴纸包开发提示
+            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+              <div className="text-4xl mb-4">👤</div>
+              <div className="text-lg font-medium text-gray-700 mb-2">
+                个人贴纸包功能激烈开发中
+              </div>
+              <div className="text-sm text-gray-500">
+                敬请期待...
+              </div>
+            </div>
           ) : (
             // 其他分类：显示正常的资产列表
             assets.map((file) => {
