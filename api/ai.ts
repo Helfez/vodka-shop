@@ -7,8 +7,8 @@ import type { OpenAI as OpenAIClient } from 'openai';
 // Create an OpenAI API client, configured for Azure OpenAI
 const openai = new OpenAI({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}`,
-  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview' },
+  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
+  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview' },
   defaultHeaders: {
     'api-key': process.env.AZURE_OPENAI_API_KEY,
   },
@@ -119,7 +119,7 @@ When responding, you MUST return a function_call to either "generate_image" or "
 
     // Request the chat completion from Azure OpenAI
     const response = await openai.chat.completions.create({
-      model: task === 'board-generate' && boardImageUrl ? 'gpt-4o' : 'gpt-4o-mini',
+      model: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o',
       function_call: 'auto',
       functions: [
         {

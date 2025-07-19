@@ -3,8 +3,8 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
-  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_OPENAI_DEPLOYMENT}`,
-  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview' },
+  baseURL: process.env.AZURE_OPENAI_ENDPOINT,
+  defaultQuery: { 'api-version': process.env.AZURE_OPENAI_API_VERSION || '2024-02-15-preview' },
   defaultHeaders: {
     'api-key': process.env.AZURE_OPENAI_API_KEY,
   },
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         { role: 'user', content: userContentParts },
       ];
       const res = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o',
         messages,
         max_tokens: 1024,
       } as any);
