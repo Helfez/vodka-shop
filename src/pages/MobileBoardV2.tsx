@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import CanvasPane from '../components/CanvasPane.js';
-import MobileToolbar from '../components/MobileToolbar.tsx';
+import { CanvasPane } from '../components/CanvasPane.js';
+
 
 /**
  * Formal mobile board page (V2) – resembles the provided mockup.
@@ -21,7 +20,6 @@ import MobileToolbar from '../components/MobileToolbar.tsx';
  *  └──────────────────────────┘
  */
 export default function MobileBoardV2() {
-  const nav = useNavigate();
 
   const [activeTool, setActiveTool] = useState<'pencil' | 'text' | 'select'>('select');
   const [generating, setGenerating] = useState(false);
@@ -42,7 +40,7 @@ export default function MobileBoardV2() {
       {/* Back button */}
       <button
         className="absolute top-[env(safe-area-inset-top,8px)] left-3 z-40 text-2xl text-black/80"
-        onClick={() => nav(-1)}
+        onClick={() => window.history.back()}
       >
         ←
       </button>
