@@ -9,6 +9,9 @@ import KontextChat from './components/KontextChat';
 import AiChat from './pages/AiChat';
 // @ts-ignore vite handles ts extension
 import MobileBoard from './pages/MobileBoard';
+// 新移动端白板页面
+// @ts-ignore vite handles ts extension
+import MobileWhiteboard from './pages/MobileWhiteboard';
 // @ts-ignore vite handles ts extension
 import MobileBoardV2 from './pages/MobileBoardV2';
 // @ts-ignore vite handles ts extension
@@ -41,9 +44,12 @@ function App() {
     const isMobileScreen = window.matchMedia('(max-width: 768px)').matches;
     const isMobile = isMobileUA || isMobileScreen;
     const path = window.location.pathname;
-    if (isMobile && !path.startsWith('/mobile') && !path.startsWith('/mobile-v2')) {
+    if (isMobile &&
+        !path.startsWith('/mobile-whiteboard') &&
+        !path.startsWith('/mobile-v2') &&
+        !path.startsWith('/mobile')) {
       const hash = window.location.hash;
-      window.history.replaceState(null, '', '/mobile' + hash);
+      window.history.replaceState(null, '', '/mobile-whiteboard' + hash);
     }
   }, [isLoading, isMobileUA]);
 
@@ -52,6 +58,7 @@ function App() {
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
     if (path.startsWith('/kontext')) return <KontextChat />;
     if (path.startsWith('/ai')) return <AiChat />;
+    if (path.startsWith('/mobile-whiteboard')) return <MobileWhiteboard />;
     if (path.startsWith('/mobile-v2')) return <MobileBoardV2 />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
     if (path.startsWith('/pipeline')) return <PipelinePage />;

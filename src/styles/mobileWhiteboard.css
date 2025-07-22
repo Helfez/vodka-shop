@@ -1,0 +1,67 @@
+/* 独立的移动端白板页面样式，仅作用于 MobileWhiteboard 组件 */
+.mobile-whiteboard {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #faf9f6; /* 与设计稿一致的浅米色 */
+  position: relative;
+  overflow: hidden;
+}
+
+/* 画布区域点阵背景 */
+.dotted-bg {
+  flex: 1;
+  background-image: radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+  background-size: 8px 8px; /* 点阵密度可根据设计调整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 底部工具栏 */
+.bottom-toolbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80px;
+  background: #ffffff;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+/* 浮动操作按钮（FAB） */
+.fab {
+  position: fixed;
+  right: 24px;
+  bottom: 100px; /* 避开底栏 */
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ff5a00; /* 设计稿橙色 */
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 28px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  z-index: 20;
+}
+
+/* 占位 icon 样式 */
+.icon-placeholder {
+  width: 28px;
+  height: 28px;
+  background: #000000;
+  border-radius: 4px;
+}
+
+.icon-label {
+  font-size: 12px;
+  color: #000000;
+  margin-top: 2px;
+}
