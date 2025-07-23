@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import '../styles/mobileWhiteboard.css';
 
 const ToolbarButton: React.FC<{ label: string }> = ({ label }) => (
@@ -10,11 +10,11 @@ const ToolbarButton: React.FC<{ label: string }> = ({ label }) => (
 );
 
 const MobileWhiteboard: React.FC = () => {
-  const navigate = useNavigate();
+
   return (
     <div className="mobile-whiteboard">
       {/* 顶部返回按钮 */}
-      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 15 }} onClick={() => navigate(-1)}>
+      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 15 }} onClick={() => window.history.back()}>
         {/* 简单返回箭头占位 */}
         <div className="icon-placeholder" style={{ width: 20, height: 20 }} />
       </div>
