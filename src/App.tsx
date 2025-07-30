@@ -16,6 +16,9 @@ import MobileWhiteboard from './pages/MobileWhiteboard';
 import MobileBoardV2 from './pages/MobileBoardV2';
 // @ts-ignore vite handles ts extension
 import PipelinePage from './pages/pipeline';
+// iPad 端页面
+// @ts-ignore vite handles ts extension
+import IPadBoard from './pages/IPadBoard';
 
 import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
@@ -36,7 +39,8 @@ function App() {
   const [loaded, setLoaded] = useState(false);
 
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(ua);
+  const isMobileUA = /Mobi|Android|iPhone|iPod|Windows Phone/i.test(ua);
+  const isIPadUA = /iPad|Macintosh/.test(ua) && 'ontouchend' in document;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -44,10 +48,18 @@ function App() {
     const isMobileScreen = window.matchMedia('(max-width: 768px)').matches;
     const isMobile = isMobileUA || isMobileScreen;
     const path = window.location.pathname;
-    if (isMobile &&
+    
+    // iPad 自动跳转到 iPad 页面
+    if (isIPadUA && path === '/') {
+      const hash = window.location.hash;
+      window.history.replaceState(null, '', '/ipad' + hash);
+    }
+    // 移动端自动跳转
+    else if (isMobile &&
         !path.startsWith('/mobile-whiteboard') &&
         !path.startsWith('/mobile-v2') &&
-        !path.startsWith('/mobile')) {
+        !path.startsWith('/mobile') &&
+        !path.startsWith('/ipad')) {
       const hash = window.location.hash;
       window.history.replaceState(null, '', '/mobile-whiteboard' + hash);
     }
@@ -58,6 +70,7 @@ function App() {
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
     if (path.startsWith('/kontext')) return <KontextChat />;
     if (path.startsWith('/ai')) return <AiChat />;
+    if (path.startsWith('/ipad')) return <IPadBoard />;
     if (path.startsWith('/mobile-whiteboard')) return <MobileWhiteboard />;
     if (path.startsWith('/mobile-v2')) return <MobileBoardV2 />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
