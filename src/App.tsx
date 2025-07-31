@@ -39,14 +39,14 @@ function App() {
   const [loaded, setLoaded] = useState(false);
 
   const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  const isMobileUA = /Mobi|Android|iPhone|iPod|Windows Phone/i.test(ua);
   const isIPadUA = /iPad|Macintosh/.test(ua) && 'ontouchend' in document;
+  const isMobileUA = /Mobi|Android|iPhone|iPod|Windows Phone/i.test(ua) && !isIPadUA;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (isLoading) return; // wait until Auth0 handled tokens
     const isMobileScreen = window.matchMedia('(max-width: 768px)').matches;
-    const isMobile = isMobileUA || isMobileScreen;
+    const isMobile = (isMobileUA || isMobileScreen) && !isIPadUA;
     const path = window.location.pathname;
     
     // iPad 自动跳转到 iPad 页面
