@@ -15,6 +15,27 @@ interface ImageRequestBody {
   mode?: 'generate' | 'edit';
 }
 
+// 异步上传到 Cloudinary 的辅助函数
+async function uploadToCloudinaryAsync(imageUrl: string): Promise<string | null> {
+  try {
+    const { v2: cloudinary } = await import('cloudinary');
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    });
+    const cldRes: any = await cloudinary.uploader.upload(imageUrl, {
+      folder: 'vodkaShop/generated',
+      overwrite: false,
+    });
+    console.log('[IMAGE] Background upload to Cloudinary successful:', cldRes.secure_url);
+    return cldRes.secure_url;
+  } catch (error) {
+    console.error('[IMAGE] Background Cloudinary upload failed:', error);
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { prompt, srcImageUrl, mode = 'generate' } = (await request.json()) as ImageRequestBody;
@@ -39,7 +60,7 @@ export async function POST(request: Request) {
         model: 'gpt-image-1',
         prompt,
         n: 1,
-        size: '1024x1024',
+        size: '512x512', // 降低分辨率提升速度
         image_url: srcImageUrl,
       } as any);
     } else {
@@ -47,7 +68,7 @@ export async function POST(request: Request) {
         model: 'gpt-image-1',
         prompt,
         n: 1,
-        size: '1024x1024',
+        size: '512x512', // 降低分辨率提升速度
       });
     }
 
@@ -65,28 +86,17 @@ export async function POST(request: Request) {
       throw new Error(firstErr);
     }
 
-    // Persist generated image to Cloudinary directly (more reliable than internal fetch)
-    try {
-      // Lazy import to avoid unused dep in edge if not configured
-      const { v2: cloudinary } = await import('cloudinary');
-      cloudinary.config({
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
-      });
-      const cldRes: any = await cloudinary.uploader.upload(outputUrl, {
-        folder: 'vodkaShop/generated',
-        overwrite: false,
-      });
-      return new Response(JSON.stringify({ imageUrl: cldRes.secure_url }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (e) {
-      console.warn('Cloudinary persist failed, fallback to original url', e);
-      return new Response(JSON.stringify({ imageUrl: outputUrl }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // 立即返回生成的图片，后台异步上传到 Cloudinary
+    const response = new Response(JSON.stringify({ imageUrl: outputUrl }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    // 异步上传到 Cloudinary（不阻塞响应）
+    uploadToCloudinaryAsync(outputUrl).catch((e: any) => {
+      console.warn('Background Cloudinary upload failed:', e);
+    });
+
+    return response;
   } catch (error) {
     console.error('Error in Image API:', error);
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
