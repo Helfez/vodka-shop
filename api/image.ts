@@ -36,6 +36,34 @@ async function uploadToCloudinaryAsync(imageUrl: string): Promise<string | null>
   }
 }
 
+// 重试机制辅助函数
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: any;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // 指数退避延迟
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`[IMAGE] Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
+
 export async function POST(request: Request) {
   try {
     const { prompt, srcImageUrl, mode = 'generate' } = (await request.json()) as ImageRequestBody;
@@ -49,28 +77,29 @@ export async function POST(request: Request) {
     }
 
     let result: any;
-    if (mode === 'edit') {
-      if (!srcImageUrl) {
-        return new Response(JSON.stringify({ error: 'srcImageUrl required for edit mode' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
+    
+    // 使用重试机制调用图像生成 API
+    result = await retryWithBackoff(async () => {
+      if (mode === 'edit') {
+        if (!srcImageUrl) {
+          throw new Error('srcImageUrl required for edit mode');
+        }
+        return await openai.images.generate({
+          model: 'gpt-image-1',
+          prompt,
+          n: 1,
+          size: '512x512', // 降低分辨率提升速度
+          image_url: srcImageUrl,
+        } as any);
+      } else {
+        return await openai.images.generate({
+          model: 'gpt-image-1',
+          prompt,
+          n: 1,
+          size: '512x512', // 降低分辨率提升速度
         });
       }
-            result = await openai.images.generate({
-        model: 'gpt-image-1',
-        prompt,
-        n: 1,
-        size: '512x512', // 降低分辨率提升速度
-        image_url: srcImageUrl,
-      } as any);
-    } else {
-      result = await openai.images.generate({
-        model: 'gpt-image-1',
-        prompt,
-        n: 1,
-        size: '512x512', // 降低分辨率提升速度
-      });
-    }
+    });
 
     let outputUrl = result.data?.[0]?.url as string | undefined;
     if (!outputUrl) {
