@@ -88,7 +88,7 @@ export async function POST(request: Request) {
           model: 'gpt-image-1',
           prompt,
           n: 1,
-          size: '1024x1024', // gpt-image-1 模型要求
+          size: '768x768', // 优化分辨率提升速度
           image_url: srcImageUrl,
         } as any);
       } else {
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
           model: 'gpt-image-1',
           prompt,
           n: 1,
-          size: '1024x1024', // gpt-image-1 模型要求
+          size: '768x768', // 优化分辨率提升速度
         });
       }
     });
