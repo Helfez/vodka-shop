@@ -49,21 +49,35 @@ function App() {
     const isMobile = (isMobileUA || isMobileScreen) && !isIPadUA;
     const path = window.location.pathname;
     
-    // iPad 自动跳转到 iPad 页面
+    // 调试信息
+    console.log('Device detection:', {
+      ua,
+      isIPadUA,
+      isMobileUA,
+      isMobileScreen,
+      isMobile,
+      path
+    });
+    
+    // iPad 自动跳转到 iPad 页面（优先级最高）
     if (isIPadUA && path === '/') {
+      console.log('Redirecting iPad to /ipad');
       const hash = window.location.hash;
       window.history.replaceState(null, '', '/ipad' + hash);
+      return; // 立即返回，避免后续逻辑
     }
+    
     // 移动端自动跳转
-    else if (isMobile &&
+    if (isMobile &&
         !path.startsWith('/mobile-whiteboard') &&
         !path.startsWith('/mobile-v2') &&
         !path.startsWith('/mobile') &&
         !path.startsWith('/ipad')) {
+      console.log('Redirecting mobile to /mobile-whiteboard');
       const hash = window.location.hash;
       window.history.replaceState(null, '', '/mobile-whiteboard' + hash);
     }
-  }, [isLoading, isMobileUA]);
+  }, [isLoading, isMobileUA, isIPadUA]);
 
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
