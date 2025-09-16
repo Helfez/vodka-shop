@@ -45,20 +45,39 @@ const GeminiTest: React.FC = () => {
 
       const data = await response.json();
       
+      // 调试：打印完整响应数据
+      console.log('Gemini API 完整响应:', JSON.stringify(data, null, 2));
+      
       // 处理响应数据 - 查找生成的图片
       let generatedContent = '';
       if (data.choices && data.choices[0] && data.choices[0].message) {
         const message = data.choices[0].message;
         
+        console.log('Message 内容:', JSON.stringify(message, null, 2));
+        
         // 检查是否有图片内容
         if (message.multi_mod_content && Array.isArray(message.multi_mod_content)) {
+          console.log('找到 multi_mod_content:', message.multi_mod_content);
+          
           const imageContent = message.multi_mod_content.find((item: any) => 
-            item.inlineData && item.inlineData.mimeType === 'image/png'
+            item.inline_data && (item.inline_data.mimeType === 'image/png' || item.inline_data.mimeType === 'image/jpeg')
           );
           
-          if (imageContent && imageContent.inlineData && imageContent.inlineData.data) {
-            generatedContent = `data:image/png;base64,${imageContent.inlineData.data}`;
+          if (imageContent) {
+            console.log('找到图片内容:', imageContent);
+            console.log('Data 长度:', imageContent.inline_data?.data?.length || 0);
+            
+            if (imageContent.inline_data && imageContent.inline_data.data) {
+              const mimeType = imageContent.inline_data.mimeType || 'image/png';
+              generatedContent = `data:${mimeType};base64,${imageContent.inline_data.data}`;
+            } else {
+              console.log('inline_data 或 data 字段为空');
+            }
+          } else {
+            console.log('没有找到符合条件的图片内容');
           }
+        } else {
+          console.log('没有找到 multi_mod_content 或不是数组');
         }
         
         // 如果没有图片，显示文本内容
