@@ -19,6 +19,9 @@ import PipelinePage from './pages/pipeline';
 // iPad 端页面
 // @ts-ignore vite handles ts extension
 import IPadBoard from './pages/IPadBoard';
+// Gemini 测试页面
+// @ts-ignore vite handles ts extension
+import GeminiTest from './pages/GeminiTest';
 
 import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
@@ -84,6 +87,7 @@ function App() {
     if (path.startsWith('/flux-test')) return <FluxTestPage />;
     if (path.startsWith('/kontext')) return <KontextChat />;
     if (path.startsWith('/ai')) return <AiChat />;
+    if (path.startsWith('/gemini-test')) return <GeminiTest />;
     if (path.startsWith('/ipad')) return <IPadBoard />;
     if (path.startsWith('/mobile-whiteboard')) return <MobileWhiteboard />;
     if (path.startsWith('/mobile-v2')) return <MobileBoardV2 />;
