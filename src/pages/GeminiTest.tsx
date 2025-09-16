@@ -1,17 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 interface GenerationResult {
   id: string;
   prompt: string;
+  baseImage?: string;
+  size: string;
   result?: string;
   error?: string;
   timestamp: number;
 }
 
+const SIZE_OPTIONS = [
+  { value: '512x512', label: '512×512 (正方形)' },
+  { value: '768x768', label: '768×768 (正方形)' },
+  { value: '1024x1024', label: '1024×1024 (正方形)' },
+  { value: '1024x768', label: '1024×768 (横向)' },
+  { value: '768x1024', label: '768×1024 (竖向)' },
+];
+
 const GeminiTest: React.FC = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedSize, setSelectedSize] = useState('1024x1024');
+  const [baseImage, setBaseImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setBaseImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +44,8 @@ const GeminiTest: React.FC = () => {
     const newResult: GenerationResult = {
       id: Date.now().toString(),
       prompt: input,
+      baseImage: baseImage || undefined,
+      size: selectedSize,
       timestamp: Date.now(),
     };
 
@@ -31,6 +57,8 @@ const GeminiTest: React.FC = () => {
       const requestBody = {
         prompt: input,
         modalities: ["text", "image"],
+        size: selectedSize,
+        baseImage: baseImage,
       };
 
       const response = await fetch('/api/gemini', {
@@ -113,6 +141,7 @@ const GeminiTest: React.FC = () => {
 
   const clearResults = () => {
     setResults([]);
+    setBaseImage(null);
   };
 
   return (
@@ -161,9 +190,23 @@ const GeminiTest: React.FC = () => {
                     <div className="text-sm text-gray-500 mb-1">
                       {new Date(result.timestamp).toLocaleString()}
                     </div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 mb-2">
                       提示词: {result.prompt}
                     </div>
+                    <div className="flex gap-4 text-sm text-gray-600">
+                      <span>尺寸: {result.size}</span>
+                      {result.baseImage && <span>✅ 使用了垫图</span>}
+                    </div>
+                    {result.baseImage && (
+                      <div className="mt-2">
+                        <div className="text-xs text-gray-500 mb-1">垫图:</div>
+                        <img
+                          src={result.baseImage}
+                          alt="垫图"
+                          className="max-w-32 h-auto rounded border"
+                        />
+                      </div>
+                    )}
                   </div>
                   
                   {result.result ? (
@@ -200,25 +243,87 @@ const GeminiTest: React.FC = () => {
         {/* Input Form */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Input Controls */}
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="输入图像生成提示词，例如：一只可爱的小猫在花园里玩耍"
-                  className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  rows={3}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
+            {/* 垫图上传 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                垫图 (可选)
+              </label>
+              <div className="flex items-center gap-4">
                 <button
-                  type="submit"
-                  disabled={isLoading || !input.trim()}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
-                  {isLoading ? '生成中...' : '生成图像'}
+                  📷 选择垫图
                 </button>
+                {baseImage && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={baseImage}
+                      alt="垫图预览"
+                      className="w-12 h-12 object-cover rounded border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBaseImage(null)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      移除
+                    </button>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </div>
+
+            {/* 尺寸选择 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                生成尺寸
+              </label>
+              <select
+                value={selectedSize}
+                onChange={(e) => setSelectedSize(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                {SIZE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 提示词输入 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                提示词
+              </label>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="输入图像生成提示词，例如：一只可爱的小猫在花园里玩耍"
+                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <button
+                    type="submit"
+                    disabled={isLoading || !input.trim()}
+                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap h-fit"
+                  >
+                    {isLoading ? '生成中...' : '生成图像'}
+                  </button>
+                </div>
               </div>
             </div>
           </form>
@@ -228,9 +333,10 @@ const GeminiTest: React.FC = () => {
             <h3 className="font-medium text-blue-900 mb-2">使用提示:</h3>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• 这是 Gemini 2.5 Flash 的图像生成模型，不是图像分析</li>
+              <li>• <strong>垫图功能</strong>：上传一张图片作为生成的参考基础</li>
+              <li>• <strong>尺寸选择</strong>：支持多种常用尺寸，包括正方形、横向和竖向</li>
               <li>• 输入详细的描述来获得更好的生成效果</li>
               <li>• 支持中文和英文提示词</li>
-              <li>• 生成的图像会以 base64 格式返回</li>
               <li>• 示例提示词：一只穿着太空服的猫在月球上跳跃，卡通风格，高质量</li>
             </ul>
           </div>
