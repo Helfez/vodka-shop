@@ -60,7 +60,7 @@ const GeminiTest: React.FC = () => {
           console.log('找到 multi_mod_content:', message.multi_mod_content);
           
           const imageContent = message.multi_mod_content.find((item: any) => 
-            item.inline_data && (item.inline_data.mimeType === 'image/png' || item.inline_data.mimeType === 'image/jpeg')
+            item.inline_data && item.inline_data.data && item.inline_data.data.length > 0
           );
           
           if (imageContent) {
@@ -68,8 +68,10 @@ const GeminiTest: React.FC = () => {
             console.log('Data 长度:', imageContent.inline_data?.data?.length || 0);
             
             if (imageContent.inline_data && imageContent.inline_data.data) {
+              // 默认使用 PNG 格式，因为 Gemini 通常返回 PNG
               const mimeType = imageContent.inline_data.mimeType || 'image/png';
               generatedContent = `data:${mimeType};base64,${imageContent.inline_data.data}`;
+              console.log('成功生成图片 data URL，长度:', generatedContent.length);
             } else {
               console.log('inline_data 或 data 字段为空');
             }
