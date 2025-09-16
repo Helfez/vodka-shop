@@ -1,50 +1,36 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
-interface Message {
+interface GenerationResult {
   id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  image?: string;
+  prompt: string;
+  result?: string;
+  error?: string;
+  timestamp: number;
 }
 
 const GeminiTest: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [results, setResults] = useState<GenerationResult[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setSelectedImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() && !selectedImage) return;
+    if (!input.trim()) return;
 
-    const userMessage: Message = {
+    const newResult: GenerationResult = {
       id: Date.now().toString(),
-      role: 'user',
-      content: input || '请分析这张图片',
-      image: selectedImage || undefined,
+      prompt: input,
+      timestamp: Date.now(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setResults(prev => [newResult, ...prev]);
     setInput('');
     setIsLoading(true);
 
     try {
       const requestBody = {
-        messages: [userMessage],
-        imageUrl: selectedImage,
-        prompt: input || '请分析这张图片',
+        prompt: input,
+        modalities: ["text", "image"],
       };
 
       const response = await fetch('/api/gemini', {
@@ -59,40 +45,53 @@ const GeminiTest: React.FC = () => {
 
       const data = await response.json();
       
-      // 处理响应数据
-      let assistantContent = '';
+      // 处理响应数据 - 查找生成的图片
+      let generatedContent = '';
       if (data.choices && data.choices[0] && data.choices[0].message) {
-        assistantContent = data.choices[0].message.content;
-      } else if (typeof data === 'string') {
-        assistantContent = data;
-      } else {
-        assistantContent = JSON.stringify(data, null, 2);
+        const message = data.choices[0].message;
+        
+        // 检查是否有图片内容
+        if (message.multi_mod_content && Array.isArray(message.multi_mod_content)) {
+          const imageContent = message.multi_mod_content.find((item: any) => 
+            item.inlineData && item.inlineData.mimeType === 'image/png'
+          );
+          
+          if (imageContent && imageContent.inlineData && imageContent.inlineData.data) {
+            generatedContent = `data:image/png;base64,${imageContent.inlineData.data}`;
+          }
+        }
+        
+        // 如果没有图片，显示文本内容
+        if (!generatedContent && message.content) {
+          generatedContent = message.content;
+        }
+      }
+      
+      if (!generatedContent) {
+        generatedContent = JSON.stringify(data, null, 2);
       }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: assistantContent,
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      // 更新结果
+      setResults(prev => prev.map(result => 
+        result.id === newResult.id 
+          ? { ...result, result: generatedContent }
+          : result
+      ));
+      
     } catch (error) {
       console.error('Error calling Gemini API:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `错误: ${error instanceof Error ? error.message : '未知错误'}`,
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setResults(prev => prev.map(result => 
+        result.id === newResult.id 
+          ? { ...result, error: error instanceof Error ? error.message : '未知错误' }
+          : result
+      ));
     } finally {
       setIsLoading(false);
-      setSelectedImage(null);
     }
   };
 
-  const clearMessages = () => {
-    setMessages([]);
-    setSelectedImage(null);
+  const clearResults = () => {
+    setResults([]);
   };
 
   return (
@@ -103,10 +102,10 @@ const GeminiTest: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Gemini 2.5 Flash Image Preview 测试
+                Gemini 2.5 Flash 图像生成测试
               </h1>
               <p className="text-gray-600 mt-1">
-                测试 AiHubMix 的 gemini-2.5-flash-image-preview 模型
+                测试 AiHubMix 的 gemini-2.5-flash-image-preview 图像生成模型
               </p>
             </div>
             <div className="flex gap-2">
@@ -117,60 +116,62 @@ const GeminiTest: React.FC = () => {
                 返回
               </button>
               <button
-                onClick={clearMessages}
+                onClick={clearResults}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
-                清空对话
+                清空结果
               </button>
             </div>
           </div>
         </div>
 
-        {/* Chat Messages */}
+        {/* Generation Results */}
         <div className="bg-white rounded-lg shadow-sm mb-6 min-h-[400px]">
-          <div className="p-6 space-y-4 max-h-[600px] overflow-y-auto">
-            {messages.length === 0 ? (
+          <div className="p-6 space-y-6 max-h-[600px] overflow-y-auto">
+            {results.length === 0 ? (
               <div className="text-center text-gray-500 py-12">
-                <div className="text-4xl mb-4">🤖</div>
-                <p>上传图片或输入文字开始测试 Gemini 模型</p>
+                <div className="text-4xl mb-4">🎨</div>
+                <p>输入提示词开始生成图像</p>
               </div>
             ) : (
-              messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-4 ${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                    }`}
-                  >
-                    {message.image && (
+              results.map((result) => (
+                <div key={result.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="mb-3">
+                    <div className="text-sm text-gray-500 mb-1">
+                      {new Date(result.timestamp).toLocaleString()}
+                    </div>
+                    <div className="font-medium text-gray-900">
+                      提示词: {result.prompt}
+                    </div>
+                  </div>
+                  
+                  {result.result ? (
+                    result.result.startsWith('data:image/') ? (
                       <div className="mb-3">
                         <img
-                          src={message.image}
-                          alt="上传的图片"
-                          className="max-w-full h-auto rounded-lg"
-                          style={{ maxHeight: '200px' }}
+                          src={result.result}
+                          alt="生成的图片"
+                          className="max-w-full h-auto rounded-lg border"
+                          style={{ maxHeight: '400px' }}
                         />
                       </div>
-                    )}
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                  </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded p-3 text-sm font-mono whitespace-pre-wrap">
+                        {result.result}
+                      </div>
+                    )
+                  ) : result.error ? (
+                    <div className="bg-red-50 text-red-700 rounded p-3 text-sm">
+                      错误: {result.error}
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2 text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <span className="text-sm">生成中...</span>
+                    </div>
+                  )}
                 </div>
               ))
-            )}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    <span className="text-gray-600">Gemini 正在分析...</span>
-                  </div>
-                </div>
-              </div>
             )}
           </div>
         </div>
@@ -178,70 +179,38 @@ const GeminiTest: React.FC = () => {
         {/* Input Form */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Image Preview */}
-            {selectedImage && (
-              <div className="relative inline-block">
-                <img
-                  src={selectedImage}
-                  alt="预览"
-                  className="max-h-32 rounded-lg border"
-                />
-                <button
-                  type="button"
-                  onClick={() => setSelectedImage(null)}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
             {/* Input Controls */}
             <div className="flex gap-4">
               <div className="flex-1">
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="输入你的问题或描述..."
+                  placeholder="输入图像生成提示词，例如：一只可爱的小猫在花园里玩耍"
                   className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                 />
               </div>
               <div className="flex flex-col gap-2">
                 <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 whitespace-nowrap"
-                >
-                  📷 上传图片
-                </button>
-                <button
                   type="submit"
-                  disabled={isLoading || (!input.trim() && !selectedImage)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  disabled={isLoading || !input.trim()}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
-                  {isLoading ? '发送中...' : '发送'}
+                  {isLoading ? '生成中...' : '生成图像'}
                 </button>
               </div>
             </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
           </form>
 
           {/* Usage Tips */}
           <div className="mt-4 p-4 bg-blue-50 rounded-lg">
             <h3 className="font-medium text-blue-900 mb-2">使用提示:</h3>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• 可以单独上传图片让 Gemini 分析</li>
-              <li>• 可以配合文字提问，比如"这张图片中有什么？"</li>
-              <li>• 支持多种图片格式：JPG、PNG、GIF 等</li>
-              <li>• 模型会返回详细的图像分析结果</li>
+              <li>• 这是 Gemini 2.5 Flash 的图像生成模型，不是图像分析</li>
+              <li>• 输入详细的描述来获得更好的生成效果</li>
+              <li>• 支持中文和英文提示词</li>
+              <li>• 生成的图像会以 base64 格式返回</li>
+              <li>• 示例提示词：一只穿着太空服的猫在月球上跳跃，卡通风格，高质量</li>
             </ul>
           </div>
         </div>

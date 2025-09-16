@@ -7,68 +7,33 @@ const openai = new OpenAI({
 });
 
 interface RequestBody {
-  messages: Array<{
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    image?: string;
-  }>;
-  imageUrl?: string;
-  prompt?: string;
+  prompt: string;
+  modalities?: string[];
 }
 
 export async function POST(request: Request) {
   try {
-    const { messages, imageUrl, prompt } = (await request.json()) as RequestBody;
+    const { prompt, modalities = ["text", "image"] } = (await request.json()) as RequestBody;
 
-    // System prompt for Gemini vision analysis
-    const systemPrompt = {
-      role: 'system' as const,
-      content: `You are a professional image analysis assistant powered by Gemini 2.5 Flash. Your task is to analyze uploaded images with high accuracy and provide detailed, structured descriptions.
-
-When analyzing images, focus on:
-- Overall composition and layout
-- Objects, people, animals, and their relationships
-- Colors, lighting, and visual style
-- Text content (if any)
-- Artistic elements and techniques
-- Context and setting
-- Any notable details or anomalies
-
-Provide your analysis in clear, organized sections. Be thorough but concise. If the user asks specific questions about the image, focus your analysis on those aspects while still providing a comprehensive overview.
-
-Respond in Chinese unless the user specifically requests English.`,
-    };
-
-    // Prepare messages for vision analysis
-    let finalMessages: any[] = [systemPrompt];
-
-    if (imageUrl) {
-      // Vision message with image
-      const userMessage = {
-        role: 'user' as const,
-        content: [
-          { type: 'image_url', image_url: { url: imageUrl } },
-          { type: 'text', text: prompt || '请分析这张图片' },
-        ],
-      };
-      finalMessages.push(userMessage);
-    } else {
-      // Text-only messages
-      const textMessages = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      }));
-      finalMessages.push(...textMessages);
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: 'Prompt required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // Call Gemini 2.5 Flash Image Preview model
+    // Call Gemini 2.5 Flash Image Preview for image generation
     const response = await openai.chat.completions.create({
       model: 'gemini-2.5-flash-image-preview',
-      messages: finalMessages,
-      max_tokens: 2048,
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        }
+      ],
+      modalities: modalities,
       temperature: 0.7,
-    });
+    } as any);
 
     // Return the response
     return new Response(JSON.stringify(response), {
