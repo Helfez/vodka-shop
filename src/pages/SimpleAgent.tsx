@@ -3,6 +3,36 @@ import { compressToUTF16, decompressFromUTF16 } from 'lz-string';
 import * as fabric from 'fabric';
 import AssetPanel from '../components/AssetPanel.js';
 
+// 珠串数据结构
+interface BeadItem {
+  id: string;
+  name: string;
+  imagePath: string;
+  price: number;
+}
+
+// 模拟珠串数据
+const MOCK_BEADS: BeadItem[] = [
+  {
+    id: 'bead-1',
+    name: '淡蓝色珠串手链',
+    imagePath: '/src/assets/beads/pastelbluebeadsbracelet3_740x.webp',
+    price: 299
+  },
+  {
+    id: 'bead-2', 
+    name: '方形青金石手链',
+    imagePath: '/src/assets/beads/square1-SodaliteBraceletV_8mm_2.webp',
+    price: 399
+  },
+  {
+    id: 'bead-3',
+    name: '笑脸珍珠手链',
+    imagePath: '/src/assets/beads/nialaya-men-s-beaded-bracelet-men-s-smiley-face-pearl-bracelet-28501627830344.jpg',
+    price: 199
+  }
+];
+
 const SimpleAgent: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -12,6 +42,9 @@ const SimpleAgent: React.FC = () => {
   // Asset panel state
   const [assetOpen, setAssetOpen] = useState(false);
   const [usedAssets, setUsedAssets] = useState(new Set<string>());
+  
+  // 珠串选择状态
+  const [selectedBead, setSelectedBead] = useState<BeadItem | null>(null);
   
   // Pen settings
   const COLORS = ['#1f1f1f','#ff4d4f','#fa8c16','#fadb14','#52c41a','#1677ff','#722ed1'];
@@ -407,17 +440,59 @@ const SimpleAgent: React.FC = () => {
 
   return (
     <div className="w-screen h-screen bg-gray-100 p-4 font-sans flex flex-col">
-      <header className="flex justify-between items-center mb-2">
-        <h1 className="text-xl font-bold text-gray-900">🤖 Simple Agent - 白板工具</h1>
-        <button
-          onClick={() => window.history.back()}
-          className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          返回
-        </button>
+      <header className="flex justify-center items-center mb-2">
+        <h1 className="text-xl font-bold text-gray-900">🤖 Simple Agent - 珠串配珠工具</h1>
       </header>
 
-      <div className="flex-grow bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-grow flex gap-4">
+        {/* 左侧珠串选择区域 - 1/4 */}
+        <div className="w-1/4 bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">珠串选择</h2>
+            {selectedBead && (
+              <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                <p className="text-xs text-blue-800">
+                  已选择: <span className="font-medium">{selectedBead.name}</span>
+                </p>
+                <p className="text-xs text-blue-600">¥{selectedBead.price}</p>
+              </div>
+            )}
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-2 gap-3">
+              {MOCK_BEADS.map((bead) => (
+                <div
+                  key={bead.id}
+                  onClick={() => setSelectedBead(bead)}
+                  className={`cursor-pointer rounded-lg border-2 p-2 transition-all hover:shadow-md ${
+                    selectedBead?.id === bead.id
+                      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="aspect-square mb-2 overflow-hidden rounded-md bg-gray-100">
+                    <img
+                      src={bead.imagePath}
+                      alt={bead.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-xs font-medium text-gray-900 mb-1 truncate">
+                      {bead.name}
+                    </h3>
+                    <p className="text-sm font-semibold text-blue-600">
+                      ¥{bead.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 右侧白板区域 - 3/4 */}
+        <div className="w-3/4 bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden flex flex-col">
         {/* Toolbar */}
         <div className="pill-panel flex gap-3 items-center px-6 py-3 border-b border-gray-200">
           <button
@@ -491,6 +566,7 @@ const SimpleAgent: React.FC = () => {
             </ul>
           )}
           <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleUpload} />
+        </div>
         </div>
       </div>
 
