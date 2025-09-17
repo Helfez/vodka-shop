@@ -22,7 +22,9 @@ import IPadBoard from './pages/IPadBoard';
 // Gemini 测试页面
 // @ts-ignore vite handles ts extension
 import GeminiTest from './pages/GeminiTest';
-
+// Simple Agent 页面
+// @ts-ignore vite handles ts extension
+import SimpleAgent from './pages/SimpleAgent';
 import { useState, useEffect } from 'react';
 // @ts-ignore vite handles ts extension
 import LoadingScreen from './components/LoadingScreen';
@@ -88,7 +90,7 @@ function App() {
     if (path.startsWith('/kontext')) return <KontextChat />;
     if (path.startsWith('/ai')) return <AiChat />;
     if (path.startsWith('/gemini-test')) return <GeminiTest />;
-    if (path.startsWith('/ipad')) return <IPadBoard />;
+    if (path.startsWith('/simple-agent')) return <SimpleAgent />;    if (path.startsWith('/ipad')) return <IPadBoard />;
     if (path.startsWith('/mobile-whiteboard')) return <MobileWhiteboard />;
     if (path.startsWith('/mobile-v2')) return <MobileBoardV2 />;
     if (path.startsWith('/mobile')) return <MobileBoard />;
