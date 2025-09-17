@@ -25,11 +25,23 @@ export default function AssetPanel({ open, onClose, onSelect, used, onRandomPack
     };
   })();
 
-  // 添加 remix 分类到第一个位置，yours 分类到最后
-  const allCategories = Object.keys(index);
-  const categories = ['remix', ...allCategories, 'yours'];
-  const [activeCat, setActiveCat] = useState<string>('remix');
-  const assets = index[activeCat] ?? [];
+  // 只保留 hot 和符文两个分类
+  const categories = ['hot', '符文'];
+  const [activeCat, setActiveCat] = useState<string>('hot');
+  
+  // 根据分类获取对应的素材
+  const getAssetsForCategory = (category: string) => {
+    switch (category) {
+      case 'hot':
+        return [...index.main, ...index.prop]; // hot 分类显示 main 和 prop 素材
+      case '符文':
+        return index.symbol; // 符文分类显示 symbol 素材
+      default:
+        return [];
+    }
+  };
+  
+  const assets = getAssetsForCategory(activeCat);
 
   const handleSelect = useCallback(
     (url: string) => {
@@ -56,87 +68,54 @@ export default function AssetPanel({ open, onClose, onSelect, used, onRandomPack
       </div>
 
       {/* categories tabs */}
-      <div className="flex gap-3 overflow-x-auto px-4 py-2 border-b">
+      <div className="flex gap-4 justify-center px-4 py-3 border-b bg-gray-50">
         {categories.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCat(cat)}
-            className={`whitespace-nowrap px-3 py-1 rounded-full text-sm ${
-              activeCat === cat ? 'bg-cyan-500 text-white' : 'bg-gray-200 text-gray-700'
+            className={`whitespace-nowrap px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+              activeCat === cat 
+                ? 'bg-cyan-500 text-white shadow-md scale-105' 
+                : 'bg-white text-gray-700 hover:bg-gray-100 hover:shadow-sm'
             }`}
           >
-            {cat}
+            {cat === 'hot' ? '🔥 Hot' : '🔮 符文'}
           </button>
         ))}
       </div>
 
-      {/* assets grid (simple flex wrap, can upgrade to react-window later) */}
+      {/* assets grid */}
       <div className="p-4 overflow-y-auto h-[calc(100vh-160px)] custom-scrollbar">
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-          {activeCat === 'remix' ? (
-            // remix 分类：显示 random package 按钮和提示文字
-            <>
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+          {assets.map((file) => {
+            const url = file;
+            const disabled = used.has(url);
+            return (
               <button
-                onClick={onRandomPackage}
-                disabled={!canUseRandomPackage}
-                className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 border-dashed flex flex-col items-center justify-center text-center p-2 ${
-                  canUseRandomPackage 
-                    ? 'border-cyan-500 bg-cyan-50 hover:bg-cyan-100 text-cyan-700' 
-                    : 'border-gray-300 bg-gray-50 text-gray-400 cursor-not-allowed'
+                key={file}
+                onClick={() => handleSelect(url)}
+                disabled={disabled}
+                className={`relative w-full aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                  disabled 
+                    ? 'opacity-40 cursor-not-allowed border-gray-200' 
+                    : 'border-gray-200 hover:border-cyan-400 hover:shadow-lg hover:scale-105 hover:rotate-1'
                 }`}
               >
-                <div className="text-2xl mb-1">🎲</div>
-                <div className="text-xs font-medium">
-                  Random<br />Package
-                </div>
-                {!canUseRandomPackage && (
-                  <div className="text-xs mt-1 opacity-60">
-                    画布需为空
-                  </div>
-                )}
-              </button>
-              {/* 提示文字 */}
-              <div className="col-span-full mt-4 text-center text-sm text-gray-500">
-                其他主题包待开发
-              </div>
-            </>
-          ) : activeCat === 'yours' ? (
-            // yours 分类：显示个人贴纸包开发提示
-            <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-              <div className="text-4xl mb-4">👤</div>
-              <div className="text-lg font-medium text-gray-700 mb-2">
-                个人贴纸包功能激烈开发中
-              </div>
-              <div className="text-sm text-gray-500">
-                敬请期待...
-              </div>
-            </div>
-          ) : (
-            // 其他分类：显示正常的资产列表
-            assets.map((file) => {
-              const url = file;
-              const disabled = used.has(url);
-              return (
-                <button
-                  key={file}
-                  onClick={() => handleSelect(url)}
-                  disabled={disabled}
-                  className={`relative w-full aspect-square rounded-lg overflow-hidden border ${
-                    disabled ? 'opacity-40 cursor-not-allowed' : 'hover:ring-2 hover:ring-cyan-400'
-                  }`}
-                >
+                <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 p-2">
                   <img
                     src={url}
                     alt={file}
-                    className="object-contain w-full h-full pointer-events-none select-none"
+                    className="object-contain w-full h-full pointer-events-none select-none transition-transform duration-200"
                   />
-                  {disabled && (
-                    <span className="absolute inset-0 bg-white/60 flex items-center justify-center text-xl">✓</span>
-                  )}
-                </button>
-              );
-            })
-          )}
+                </div>
+                {disabled && (
+                  <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                    <span className="text-2xl text-green-500">✓</span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>

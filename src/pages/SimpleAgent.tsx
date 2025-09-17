@@ -441,14 +441,14 @@ const SimpleAgent: React.FC = () => {
   return (
     <div className="w-screen h-screen bg-gray-100 p-4 font-sans flex flex-col">
       <header className="flex justify-center items-center mb-2">
-        <h1 className="text-xl font-bold text-gray-900">🤖 Simple Agent - 珠串配珠工具</h1>
+        <h1 className="text-xl font-bold text-gray-900">🤖 Simple Agent</h1>
       </header>
 
       <div className="flex-grow flex gap-4">
         {/* 左侧珠串选择区域 - 1/4 */}
         <div className="w-1/4 bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">珠串选择</h2>
+            <h2 className="text-lg font-semibold text-gray-900">配珠选择</h2>
             {selectedBead && (
               <div className="mt-2 p-2 bg-blue-50 rounded-lg">
                 <p className="text-xs text-blue-800">
@@ -527,7 +527,7 @@ const SimpleAgent: React.FC = () => {
           </button>
 
           <button
-            className={`w-16 h-16 rounded-full bg-cyan-500 text-white shadow-lg flex flex-col items-center justify-center ${assetOpen ? 'ring-4 ring-cyan-300' : ''}`}
+            className={`w-16 h-16 rounded-full bg-cyan-500 text-white shadow-lg flex flex-col items-center justify-center transition-all duration-200 hover:rotate-4 hover:scale-110 ${assetOpen ? 'ring-4 ring-cyan-300' : ''}`}
             onClick={() => setAssetOpen(true)}
           >
             <span className="text-lg">🖼️</span>
