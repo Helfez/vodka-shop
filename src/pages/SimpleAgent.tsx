@@ -15,20 +15,20 @@ interface BeadItem {
 const MOCK_BEADS: BeadItem[] = [
   {
     id: 'bead-1',
-    name: '淡蓝色珠串手链',
-    imagePath: '/src/assets/beads/pastelbluebeadsbracelet3_740x.webp',
+    name: '淡蓝色珠配珠',
+    imagePath: '/beads/pastelbluebeadsbracelet3_740x.webp',
     price: 299
   },
   {
     id: 'bead-2', 
-    name: '方形青金石手链',
-    imagePath: '/src/assets/beads/square1-SodaliteBraceletV_8mm_2.webp',
+    name: '方形青金石配珠',
+    imagePath: '/beads/square1-SodaliteBraceletV_8mm_2.webp',
     price: 399
   },
   {
     id: 'bead-3',
-    name: '笑脸珍珠手链',
-    imagePath: '/src/assets/beads/nialaya-men-s-beaded-bracelet-men-s-smiley-face-pearl-bracelet-28501627830344.jpg',
+    name: '珍珠配珠',
+    imagePath: '/beads/nialaya-men-s-beaded-bracelet-men-s-smiley-face-pearl-bracelet-28501627830344.jpg',
     price: 199
   }
 ];
