@@ -1,5 +1,4 @@
-// 使用 Google 原生 genai 库调用 Gemini
-import { GoogleGenerativeAI } from '@google/generative-ai';
+// 直接使用 fetch 调用 AiHubMix 的 Gemini 端点
 
 interface AgentRequest {
   whiteboardImage: string; // 白板快照 base64 或 URL
@@ -28,13 +27,7 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用原生 gemini-2.5-flash-lite 模型`);
-
-    // 初始化 Gemini 客户端，使用 AiHubMix 的 Gemini 端点
-    const genAI = new GoogleGenerativeAI(process.env.AIMIXHUB_API_KEY!);
-
-    // 获取模型
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用 gemini-2.5-flash-lite 模型（直接调用AiHubMix）`);
 
     // 处理图片数据
     const extractBase64 = (dataUrl: string) => {
@@ -66,7 +59,7 @@ export async function POST(request: Request) {
       productImageBase64 = Buffer.from(buffer).toString('base64');
     }
 
-    // 构建消息内容
+    // 构建消息内容 - 使用Gemini原生格式
     const parts = [
       {
         text: `你是一个专业的珠串设计分析师。请分析用户的白板创意草图${productImageBase64 ? '和选择的珠串商品' : ''}，给出具体的设计建议。
@@ -81,8 +74,8 @@ ${!productImageBase64 ? `商品信息：${productImage}` : ''}
 请用中文回复，给出简洁明了的设计分析和具体可执行的设计建议。`
       },
       {
-        inlineData: {
-          mimeType: 'image/png',
+        inline_data: {
+          mime_type: "image/png",
           data: whiteboardBase64
         }
       }
@@ -91,17 +84,43 @@ ${!productImageBase64 ? `商品信息：${productImage}` : ''}
     // 如果有商品图片数据，添加到parts中
     if (productImageBase64) {
       parts.push({
-        inlineData: {
-          mimeType: 'image/jpeg',
+        inline_data: {
+          mime_type: "image/jpeg", 
           data: productImageBase64
         }
       });
     }
 
-    // 调用 Gemini API
-    const result = await model.generateContent(parts);
-    const response = await result.response;
-    const analysisResult = response.text() || '分析失败';
+    // 直接调用 AiHubMix 的 Gemini API
+    const apiKey = process.env.AIMIXHUB_API_KEY;
+    const geminiResponse = await fetch(`https://aihubmix.com/gemini/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: parts
+          }
+        ],
+        generationConfig: {
+          maxOutputTokens: 1000,
+          temperature: 0.7
+        }
+      }),
+    });
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.error('Gemini API 错误:', errorText);
+      throw new Error(`Gemini API error: ${geminiResponse.status} ${errorText}`);
+    }
+
+    const geminiData = await geminiResponse.json();
+    console.log('Gemini API 响应:', JSON.stringify(geminiData, null, 2));
+
+    const analysisResult = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '分析失败';
 
     // 构建简化的 Agent 响应格式
     const agentResponse: AgentResponse = {
