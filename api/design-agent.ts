@@ -45,16 +45,8 @@ export default async function handler(req: any, res: any) {
 
 请用中文回复，给出简洁明了的设计分析和具体可执行的设计建议。`;
 
-    // 用户消息（包含商品信息和白板图片）
-    const userMessage = `请分析我的设计草图，并结合以下商品信息给出设计建议：
-
-商品信息：${productImage}
-
-请基于白板上的创意草图和这个商品，给出具体的设计分析和建议。`;
-
-    // 构建请求内容
+    // 构建请求内容 - 只包含图片，不需要额外的用户消息
     const parts = [
-      { text: userMessage },
       {
         inline_data: {
           mime_type: "image/png",
@@ -63,7 +55,7 @@ export default async function handler(req: any, res: any) {
       }
     ];
 
-    // 如果商品图片是base64，添加到请求中
+    // 商品图片必须是base64，添加到请求中
     if (productImage.startsWith('data:')) {
       const productBase64 = extractBase64(productImage);
       if (productBase64) {
@@ -74,6 +66,9 @@ export default async function handler(req: any, res: any) {
           }
         });
       }
+    } else {
+      // 如果不是base64，说明前端处理有问题
+      throw new Error('商品图片必须是base64格式');
     }
 
     // 调用 AiHubMix Gemini API
@@ -86,12 +81,10 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         contents: [
           {
-            role: "model",
-            parts: [{ text: systemPrompt }]
-          },
-          {
-            role: "user", 
-            parts: parts
+            parts: [
+              { text: systemPrompt },
+              ...parts
+            ]
           }
         ],
         generationConfig: {
