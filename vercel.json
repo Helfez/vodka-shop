@@ -7,8 +7,5 @@
   "rewrites": [
     { "source": "/assets/:path*", "destination": "/assets/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "cleanUrls": true
+  ]
 }
