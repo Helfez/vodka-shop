@@ -46,6 +46,10 @@ const SimpleAgent: React.FC = () => {
   // 珠串选择状态
   const [selectedBead, setSelectedBead] = useState<BeadItem | null>(null);
   
+  // Agent 设计功能状态
+  const [isDesigning, setIsDesigning] = useState(false);
+  const [designResult, setDesignResult] = useState<string | null>(null);
+  
   // Pen settings
   const COLORS = ['#1f1f1f','#ff4d4f','#fa8c16','#fadb14','#52c41a','#1677ff','#722ed1'];
   const [penColor, setPenColor] = useState(COLORS[0]);
@@ -438,6 +442,53 @@ const SimpleAgent: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // Agent 设计功能
+  const handleDesign = async () => {
+    if (!canvas || !selectedBead) {
+      alert('请先选择一个配珠！');
+      return;
+    }
+
+    setIsDesigning(true);
+    setDesignResult(null);
+
+    try {
+      // 获取白板快照
+      const whiteboardDataURL = canvas.toDataURL({
+        format: 'png',
+        quality: 0.8,
+        multiplier: 1
+      });
+
+      // 调用 Agent API
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          whiteboardImage: whiteboardDataURL,
+          productImage: selectedBead.imagePath,
+          node: '1-1',
+          task: 'devdesign'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setDesignResult(result.result);
+      
+    } catch (error) {
+      console.error('设计分析失败:', error);
+      alert('设计分析失败，请重试！');
+    } finally {
+      setIsDesigning(false);
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-gray-100 p-4 font-sans flex flex-col">
       <header className="flex justify-center items-center mb-2">
@@ -527,6 +578,24 @@ const SimpleAgent: React.FC = () => {
           </button>
 
           <button
+            className={`w-16 h-16 rounded-full bg-green-500 text-white shadow-lg flex flex-col items-center justify-center transition-all duration-200 hover:rotate-3 hover:scale-110 ${isDesigning ? 'ring-4 ring-green-300 animate-pulse' : ''}`}
+            onClick={handleDesign}
+            disabled={!selectedBead || isDesigning}
+          >
+            {isDesigning ? (
+              <>
+                <span className="text-lg">⏳</span>
+                <span className="text-xs font-medium">分析中</span>
+              </>
+            ) : (
+              <>
+                <span className="text-lg">🎨</span>
+                <span className="text-xs font-medium">设计</span>
+              </>
+            )}
+          </button>
+
+          <button
             className={`w-16 h-16 rounded-full bg-cyan-500 text-white shadow-lg flex flex-col items-center justify-center transition-all duration-200 hover:rotate-4 hover:scale-110 ${assetOpen ? 'ring-4 ring-cyan-300' : ''}`}
             onClick={() => setAssetOpen(true)}
           >
@@ -569,6 +638,30 @@ const SimpleAgent: React.FC = () => {
         </div>
         </div>
       </div>
+
+      {/* 设计结果显示区域 */}
+      {designResult && (
+        <div className="mt-4 bg-white rounded-2xl border border-gray-300 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-200 bg-green-50">
+            <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+              🎨 设计分析结果
+              <button 
+                onClick={() => setDesignResult(null)}
+                className="ml-auto text-sm text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500">
+              <pre className="whitespace-pre-wrap text-gray-800 font-sans text-sm leading-relaxed">
+                {designResult}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AssetPanel
         open={assetOpen}
