@@ -442,6 +442,35 @@ const SimpleAgent: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // 将图片URL转换为base64的辅助函数
+  const imageToBase64 = async (imageSrc: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('无法获取canvas context'));
+          return;
+        }
+        
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        try {
+          const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(dataURL);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      img.onerror = () => reject(new Error('图片加载失败'));
+      img.src = imageSrc;
+    });
+  };
+
   // Agent 设计功能
   const handleDesign = async () => {
     if (!canvas || !selectedBead) {
@@ -460,6 +489,9 @@ const SimpleAgent: React.FC = () => {
         multiplier: 1
       });
 
+      // 将商品图片转换为base64
+      const productImageBase64 = await imageToBase64(selectedBead.imagePath);
+
       // 调用 Agent API
       const response = await fetch('/api/agentv2', {
         method: 'POST',
@@ -468,7 +500,7 @@ const SimpleAgent: React.FC = () => {
         },
         body: JSON.stringify({
           whiteboardImage: whiteboardDataURL,
-          productImage: selectedBead.imagePath,
+          productImage: productImageBase64,
           node: '1-1',
           task: 'devdesign'
         }),
@@ -479,11 +511,18 @@ const SimpleAgent: React.FC = () => {
       }
 
       const result = await response.json();
-      setDesignResult(result.result);
+      
+      // 适配新的API响应格式
+      if (result.success) {
+        setDesignResult(result.result);
+      } else {
+        throw new Error(result.error || '设计分析失败');
+      }
       
     } catch (error) {
       console.error('设计分析失败:', error);
-      alert('设计分析失败，请重试！');
+      const errorMessage = error instanceof Error ? error.message : '设计分析失败，请重试！';
+      alert(errorMessage);
     } finally {
       setIsDesigning(false);
     }
