@@ -512,6 +512,10 @@ const SimpleAgent: React.FC = () => {
 
       const result = await response.json();
       
+      // 在控制台打印API返回的完整结果
+      console.log('🤖 Agent API 返回结果:', result);
+      console.log('📋 设计分析内容:', result.result);
+      
       // 适配新的API响应格式
       if (result.success) {
         setDesignResult(result.result);

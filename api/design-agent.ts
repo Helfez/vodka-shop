@@ -96,6 +96,9 @@ export default async function handler(req: any, res: any) {
     const data = await response.json();
     const result = data.candidates?.[0]?.content?.parts?.[0]?.text || '分析失败';
 
+    // 详细日志输出
+    console.log(`[AGENT ${node}] Gemini API 原始响应:`, JSON.stringify(data, null, 2));
+    console.log(`[AGENT ${node}] 提取的分析结果:`, result);
     console.log(`[AGENT ${node}] ${task} 任务完成`);
 
     return res.status(200).json({
