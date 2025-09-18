@@ -1,10 +1,5 @@
-import OpenAI from 'openai';
-
-// Create an OpenAI API client, configured for Aimixhub v1 endpoint
-const openai = new OpenAI({
-  apiKey: process.env.AIMIXHUB_API_KEY,
-  baseURL: 'https://aihubmix.com/v1',
-});
+// 使用 Google 原生 genai 库调用 Gemini
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 interface AgentRequest {
   whiteboardImage: string; // 白板快照 base64 或 URL
@@ -33,53 +28,80 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用 gemini-2.5-flash-lite 模型`);
+    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用原生 gemini-2.5-flash-lite 模型`);
 
-    // 节点1-1: Devdesign 任务的系统提示
-    const systemPrompt = {
-      role: 'system' as const,
-      content: `你是一个专业的珠串设计分析师。你需要分析用户的白板创意草图和选择的珠串商品，然后给出具体的设计建议。
+    // 初始化 Gemini 客户端，使用 AiHubMix 的 Gemini 端点
+    const genAI = new GoogleGenerativeAI(process.env.AIMIXHUB_API_KEY!);
+
+    // 获取模型
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+
+    // 处理图片数据
+    const extractBase64 = (dataUrl: string) => {
+      if (dataUrl.startsWith('data:')) {
+        return dataUrl.split(',')[1];
+      }
+      return dataUrl;
+    };
+
+    // 获取图片的base64数据
+    let whiteboardBase64: string;
+    let productImageBase64: string | null = null;
+
+    if (whiteboardImage.startsWith('data:')) {
+      whiteboardBase64 = extractBase64(whiteboardImage);
+    } else {
+      // 如果是URL，需要下载图片并转换为base64
+      const response = await fetch(whiteboardImage);
+      const buffer = await response.arrayBuffer();
+      whiteboardBase64 = Buffer.from(buffer).toString('base64');
+    }
+
+    if (productImage.startsWith('data:')) {
+      productImageBase64 = extractBase64(productImage);
+    } else if (productImage.startsWith('http')) {
+      // 如果是完整URL，下载并转换
+      const response = await fetch(productImage);
+      const buffer = await response.arrayBuffer();
+      productImageBase64 = Buffer.from(buffer).toString('base64');
+    }
+
+    // 构建消息内容
+    const parts = [
+      {
+        text: `你是一个专业的珠串设计分析师。请分析用户的白板创意草图${productImageBase64 ? '和选择的珠串商品' : ''}，给出具体的设计建议。
 
 分析要点：
 1. 白板创意解读：识别用户画的图案、颜色、布局意图
-2. 珠串商品特征：分析珠串的材质、颜色、形状、风格
-3. 设计融合建议：如何将用户创意与珠串特征结合
+${productImageBase64 ? '2. 珠串商品特征：分析珠串的材质、颜色、形状、风格' : ''}
+${productImageBase64 ? '3. 设计融合建议：如何将用户创意与珠串特征结合' : '2. 设计建议：基于创意草图给出珠串设计建议'}
 
-输出要求：
-- 简洁明了的设计分析
-- 具体可执行的设计建议
-- 突出亮点和创新点
-- 用中文回复`,
-    };
+${!productImageBase64 ? `商品信息：${productImage}` : ''}
 
-    // 构建视觉分析消息
-    const userMessage = {
-      role: 'user' as const,
-      content: [
-        {
-          type: 'text' as const,
-          text: '请分析用户的白板创意草图和选择的珠串商品，给出设计建议。第一张是白板快照，第二张是选择的珠串商品。'
-        },
-        {
-          type: 'image_url' as const,
-          image_url: { url: whiteboardImage }
-        },
-        {
-          type: 'image_url' as const, 
-          image_url: { url: productImage }
+请用中文回复，给出简洁明了的设计分析和具体可执行的设计建议。`
+      },
+      {
+        inlineData: {
+          mimeType: 'image/png',
+          data: whiteboardBase64
         }
-      ]
-    };
+      }
+    ];
 
-    // 暂时使用GPT-4o进行视觉分析（因为Gemini MIME类型问题）
-    const response = await openai.chat.completions.create({
-      model: 'gemini-2.5-flash-lite',
-      messages: [systemPrompt, userMessage],
-      max_tokens: 1000,
-      temperature: 0.7,
-    });
+    // 如果有商品图片数据，添加到parts中
+    if (productImageBase64) {
+      parts.push({
+        inlineData: {
+          mimeType: 'image/jpeg',
+          data: productImageBase64
+        }
+      });
+    }
 
-    const analysisResult = response.choices[0]?.message?.content || '分析失败';
+    // 调用 Gemini API
+    const result = await model.generateContent(parts);
+    const response = await result.response;
+    const analysisResult = response.text() || '分析失败';
 
     // 构建简化的 Agent 响应格式
     const agentResponse: AgentResponse = {
