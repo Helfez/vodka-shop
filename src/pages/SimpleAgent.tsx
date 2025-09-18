@@ -461,7 +461,7 @@ const SimpleAgent: React.FC = () => {
       });
 
       // 调用 Agent API
-      const response = await fetch('/api/agent', {
+      const response = await fetch('/api/agentv2', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
