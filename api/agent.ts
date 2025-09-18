@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       });
     }
 
-    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用 gpt-4o 模型（临时替代）`);
+    console.log(`[AGENT ${node}] 开始处理 ${task} 任务 - 使用 gemini-2.5-flash-lite 模型`);
 
     // 节点1-1: Devdesign 任务的系统提示
     const systemPrompt = {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
     // 暂时使用GPT-4o进行视觉分析（因为Gemini MIME类型问题）
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gemini-2.5-flash-lite',
       messages: [systemPrompt, userMessage],
       max_tokens: 1000,
       temperature: 0.7,
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
       timestamp: Date.now()
     };
 
-    console.log(`[AGENT ${node}] ${task} 任务完成 - 模型: gpt-4o（临时替代）`);
+    console.log(`[AGENT ${node}] ${task} 任务完成 - 模型: gemini-2.5-flash-lite`);
 
     return new Response(JSON.stringify(agentResponse), {
       headers: { 'Content-Type': 'application/json' },
