@@ -35,7 +35,7 @@ export default async function handler(req: any, res: any) {
     // 处理白板图片数据
     const whiteboardBase64 = extractBase64(whiteboardImage);
 
-    // 系统提示词
+    // 系统提示词（不包含商品信息）
     const systemPrompt = `你是一个专业的珠串设计分析师。请分析用户的白板创意草图和选择的珠串商品，给出具体的设计建议。
 
 分析要点：
@@ -43,13 +43,18 @@ export default async function handler(req: any, res: any) {
 2. 珠串商品匹配：分析如何将创意与商品特征结合
 3. 设计建议：提供具体可执行的设计方案
 
+请用中文回复，给出简洁明了的设计分析和具体可执行的设计建议。`;
+
+    // 用户消息（包含商品信息和白板图片）
+    const userMessage = `请分析我的设计草图，并结合以下商品信息给出设计建议：
+
 商品信息：${productImage}
 
-请用中文回复，给出简洁明了的设计分析和具体可执行的设计建议。`;
+请基于白板上的创意草图和这个商品，给出具体的设计分析和建议。`;
 
     // 构建请求内容
     const parts = [
-      { text: systemPrompt },
+      { text: userMessage },
       {
         inline_data: {
           mime_type: "image/png",
@@ -79,7 +84,16 @@ export default async function handler(req: any, res: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contents: [{ parts }],
+        contents: [
+          {
+            role: "model",
+            parts: [{ text: systemPrompt }]
+          },
+          {
+            role: "user", 
+            parts: parts
+          }
+        ],
         generationConfig: {
           maxOutputTokens: 1000,
           temperature: 0.7
