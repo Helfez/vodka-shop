@@ -1,5 +1,6 @@
 // 简化的 AiHubMix Gemini Agent API
 // 只专注核心功能：发送两张图片和SystemPrompt
+// 修复Vercel部署配置冲突
 
 interface AgentRequest {
   whiteboardImage: string; // 白板快照 base64 data URL
