@@ -1,17 +1,11 @@
-// 简化的 AiHubMix Gemini Agent API
-// 只专注核心功能：发送两张图片和SystemPrompt
-// 使用Edge Runtime避免构建冲突
+// 全新的设计分析API - 避免Vercel构建冲突
 
-// 移除Edge Runtime，尝试其他方法
-
-interface AgentRequest {
-  whiteboardImage: string; // 白板快照 base64 data URL
-  productImage: string;    // 商品图片 base64 data URL 或路径
+interface DesignRequest {
+  whiteboardImage: string;
+  productImage: string;
   node?: string;
   task?: string;
 }
-
-// 响应格式在代码中直接定义，不需要单独的接口
 
 // 提取base64数据
 function extractBase64(dataUrl: string): string {
@@ -21,17 +15,18 @@ function extractBase64(dataUrl: string): string {
   return dataUrl;
 }
 
-export async function POST(request: Request) {
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
+  }
+
   try {
-    const { whiteboardImage, productImage, node = "1-1", task = "devdesign" } = await request.json() as AgentRequest;
+    const { whiteboardImage, productImage, node = "1-1", task = "devdesign" } = req.body as DesignRequest;
 
     if (!whiteboardImage || !productImage) {
-      return new Response(JSON.stringify({ 
+      return res.status(400).json({ 
         success: false,
         error: 'Both whiteboardImage and productImage are required' 
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
       });
     }
 
@@ -103,26 +98,21 @@ export async function POST(request: Request) {
 
     console.log(`[AGENT ${node}] ${task} 任务完成`);
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       success: true,
       result,
       node,
       task,
       timestamp: Date.now()
-    }), {
-      headers: { 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Agent API 错误:', error);
     
-    return new Response(JSON.stringify({ 
+    return res.status(500).json({ 
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
       timestamp: Date.now()
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
     });
   }
 }

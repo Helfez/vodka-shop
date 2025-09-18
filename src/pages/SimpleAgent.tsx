@@ -493,7 +493,7 @@ const SimpleAgent: React.FC = () => {
       const productImageBase64 = await imageToBase64(selectedBead.imagePath);
 
       // 调用 Agent API
-      const response = await fetch('/api/agentv2', {
+      const response = await fetch('/api/design-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
