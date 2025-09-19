@@ -471,7 +471,7 @@ const SimpleAgent: React.FC = () => {
     });
   };
 
-  // Agent 设计功能
+  // Agent 设计功能 - 串联调用1-1和1-2
   const handleDesign = async () => {
     if (!canvas || !selectedBead) {
       alert('请先选择一个配珠！');
@@ -482,6 +482,8 @@ const SimpleAgent: React.FC = () => {
     setDesignResult(null);
 
     try {
+      console.log('🚀 开始串联工作流：1-1 → 1-2');
+      
       // 获取白板快照
       const whiteboardDataURL = canvas.toDataURL({
         format: 'png',
@@ -492,8 +494,16 @@ const SimpleAgent: React.FC = () => {
       // 将商品图片转换为base64
       const productImageBase64 = await imageToBase64(selectedBead.imagePath);
 
-      // 调用 Agent API
-      const response = await fetch('/api/design-agent', {
+      console.log('📸 图片数据准备完成');
+      console.log('📏 白板图片大小:', whiteboardDataURL.length, 'bytes');
+      console.log('📏 商品图片大小:', productImageBase64.length, 'bytes');
+
+      // ================================
+      // 步骤1: 调用节点1-1进行分析
+      // ================================
+      console.log('🔍 [步骤1] 开始调用节点1-1进行设计分析...');
+      
+      const response1_1 = await fetch('/api/design-agent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -506,26 +516,70 @@ const SimpleAgent: React.FC = () => {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response1_1.ok) {
+        throw new Error(`节点1-1调用失败: ${response1_1.status}`);
       }
 
-      const result = await response.json();
+      const result1_1 = await response1_1.json();
       
-      // 在控制台打印API返回的完整结果
-      console.log('🤖 Agent API 返回结果:', result);
-      console.log('📋 设计分析内容:', result.result);
+      console.log('✅ [步骤1] 节点1-1完成');
+      console.log('🤖 节点1-1返回结果:', result1_1);
+      console.log('📋 设计分析内容:', result1_1.result);
       
-      // 适配新的API响应格式
-      if (result.success) {
-        setDesignResult(result.result);
-      } else {
-        throw new Error(result.error || '设计分析失败');
+      if (!result1_1.success) {
+        throw new Error(result1_1.error || '节点1-1分析失败');
       }
+
+      const analysisResult = result1_1.result;
+
+      // ================================
+      // 步骤2: 调用节点1-2进行图片生成
+      // ================================
+      console.log('🎨 [步骤2] 开始调用节点1-2进行图片生成...');
+      console.log('📝 基于分析结果:', analysisResult.substring(0, 100) + '...');
+
+      const response1_2 = await fetch('/api/design-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          whiteboardImage: whiteboardDataURL,
+          productImage: productImageBase64,
+          node: '1-2',
+          task: 'devdesign',
+          node1_1Result: analysisResult
+        }),
+      });
+
+      if (!response1_2.ok) {
+        throw new Error(`节点1-2调用失败: ${response1_2.status}`);
+      }
+
+      const result1_2 = await response1_2.json();
+      
+      console.log('✅ [步骤2] 节点1-2完成');
+      console.log('🖼️ 节点1-2返回结果:', result1_2);
+      
+      if (!result1_2.success) {
+        throw new Error(result1_2.error || '节点1-2图片生成失败');
+      }
+
+      // ================================
+      // 完整工作流结果
+      // ================================
+      console.log('🎉 串联工作流完成！');
+      console.log('📊 完整结果汇总:');
+      console.log('  - 节点1-1分析结果:', analysisResult);
+      console.log('  - 节点1-2图片URL长度:', result1_2.result.imageUrl?.length || 0);
+      console.log('  - 节点1-2图片描述:', result1_2.result.description || '无');
+      
+      // 设置UI显示（可以显示分析结果，图片结果在控制台查看）
+      setDesignResult(`✅ 工作流完成！\n\n📋 设计分析：\n${analysisResult}\n\n🖼️ 图片已生成（查看控制台）`);
       
     } catch (error) {
-      console.error('设计分析失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '设计分析失败，请重试！';
+      console.error('❌ 串联工作流失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '设计工作流失败，请重试！';
       alert(errorMessage);
     } finally {
       setIsDesigning(false);
@@ -628,12 +682,12 @@ const SimpleAgent: React.FC = () => {
             {isDesigning ? (
               <>
                 <span className="text-lg">⏳</span>
-                <span className="text-xs font-medium">分析中</span>
+                <span className="text-xs font-medium">设计中</span>
               </>
             ) : (
               <>
                 <span className="text-lg">🎨</span>
-                <span className="text-xs font-medium">设计</span>
+                <span className="text-xs font-medium">AI设计</span>
               </>
             )}
           </button>
