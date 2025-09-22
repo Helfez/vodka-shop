@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 interface GenerationResult {
   id: string;
   prompt: string;
-  baseImage?: string;
+  baseImages?: string[];
   size: string;
   result?: string;
   error?: string;
@@ -23,28 +23,42 @@ const GeminiTest: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSize, setSelectedSize] = useState('1024x1024');
-  const [baseImage, setBaseImage] = useState<string | null>(null);
+  const [baseImages, setBaseImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setBaseImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    const remainingSlots = Math.max(0, 3 - baseImages.length);
+    if (!remainingSlots) return;
+
+    files.slice(0, remainingSlots).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setBaseImages((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setBaseImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    const baseImagesSnapshot = [...baseImages];
+
     const newResult: GenerationResult = {
       id: Date.now().toString(),
       prompt: input,
-      baseImage: baseImage || undefined,
+      baseImages: baseImagesSnapshot.length ? [...baseImagesSnapshot] : undefined,
       size: selectedSize,
       timestamp: Date.now(),
     };
@@ -58,7 +72,7 @@ const GeminiTest: React.FC = () => {
         prompt: input,
         modalities: ["text", "image"],
         size: selectedSize,
-        baseImage: baseImage,
+        baseImages: baseImagesSnapshot,
       };
 
       const response = await fetch('/api/gemini', {
@@ -141,7 +155,7 @@ const GeminiTest: React.FC = () => {
 
   const clearResults = () => {
     setResults([]);
-    setBaseImage(null);
+    setBaseImages([]);
   };
 
   return (
@@ -195,18 +209,23 @@ const GeminiTest: React.FC = () => {
                     </div>
                     <div className="flex gap-4 text-sm text-gray-600">
                       <span>尺寸: {result.size}</span>
-                      {result.baseImage && <span>✅ 使用了垫图</span>}
+                      {result.baseImages?.length ? <span>✅ 使用了垫图（{result.baseImages.length} 张）</span> : null}
                     </div>
-                    {result.baseImage && (
+                    {result.baseImages?.length ? (
                       <div className="mt-2">
                         <div className="text-xs text-gray-500 mb-1">垫图:</div>
-                        <img
-                          src={result.baseImage}
-                          alt="垫图"
-                          className="max-w-32 h-auto rounded border"
-                        />
+                        <div className="flex flex-wrap gap-2">
+                          {result.baseImages.map((image, index) => (
+                            <img
+                              key={`${result.id}-base-${index}`}
+                              src={image}
+                              alt={`垫图 ${index + 1}`}
+                              className="max-w-32 h-auto rounded border"
+                            />
+                          ))}
+                        </div>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                   
                   {result.result ? (
@@ -246,30 +265,35 @@ const GeminiTest: React.FC = () => {
             {/* 垫图上传 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                垫图 (可选)
+                垫图 (可选，最多 3 张)
               </label>
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+                  disabled={baseImages.length >= 3}
                 >
                   📷 选择垫图
                 </button>
-                {baseImage && (
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={baseImage}
-                      alt="垫图预览"
-                      className="w-12 h-12 object-cover rounded border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setBaseImage(null)}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      移除
-                    </button>
+                {baseImages.length > 0 && (
+                  <div className="flex flex-wrap gap-3">
+                    {baseImages.map((image, index) => (
+                      <div key={`preview-${index}`} className="relative">
+                        <img
+                          src={image}
+                          alt={`垫图预览 ${index + 1}`}
+                          className="w-12 h-12 object-cover rounded border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -277,6 +301,7 @@ const GeminiTest: React.FC = () => {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageUpload}
                 className="hidden"
               />
@@ -333,7 +358,7 @@ const GeminiTest: React.FC = () => {
             <h3 className="font-medium text-blue-900 mb-2">使用提示:</h3>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• 这是 Gemini 2.5 Flash 的图像生成模型，不是图像分析</li>
-              <li>• <strong>垫图功能</strong>：上传一张图片作为生成的参考基础</li>
+              <li>• <strong>垫图功能</strong>：上传最多三张图片作为生成的参考基础</li>
               <li>• <strong>尺寸选择</strong>：支持多种常用尺寸，包括正方形、横向和竖向</li>
               <li>• 输入详细的描述来获得更好的生成效果</li>
               <li>• 支持中文和英文提示词</li>

@@ -11,11 +11,12 @@ interface RequestBody {
   modalities?: string[];
   size?: string;
   baseImage?: string;
+  baseImages?: string[];
 }
 
 export async function POST(request: Request) {
   try {
-    const { prompt, modalities = ["text", "image"], size, baseImage } = (await request.json()) as RequestBody;
+    const { prompt, modalities = ["text", "image"], size, baseImage, baseImages = [] } = (await request.json()) as RequestBody;
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt required' }), {
@@ -25,23 +26,43 @@ export async function POST(request: Request) {
     }
 
     // 构建消息内容
-    let messageContent: any = [];
+    const messageContent: Array<
+      | {
+          type: 'image_url';
+          image_url: { url: string };
+        }
+      | {
+          type: 'text';
+          text: string;
+        }
+    > = [];
+    const normalizedImages = Array.isArray(baseImages)
+      ? baseImages.slice(0, 3)
+      : [];
+
+    const imageReferences = normalizedImages.length
+      ? normalizedImages
+      : baseImage
+        ? [baseImage]
+        : [];
     
     // 如果有垫图，添加图片内容
-    if (baseImage) {
+    imageReferences.forEach((imageUrl: string) => {
       messageContent.push({
         type: 'image_url',
-        image_url: { url: baseImage }
+        image_url: { url: imageUrl }
       });
-    }
+    });
     
     // 添加文本提示
     let textPrompt = `Please create an image of: ${prompt}. Return only the image, no text description.`;
     if (size) {
       textPrompt += ` Image size should be ${size}.`;
     }
-    if (baseImage) {
-      textPrompt += ` Use the provided image as a reference or base for generation.`;
+    if (imageReferences.length) {
+      textPrompt += imageReferences.length > 1
+        ? ` Use the provided images as references or bases for generation.`
+        : ` Use the provided image as a reference or base for generation.`;
     }
     
     messageContent.push({
@@ -55,7 +76,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: 'user',
-          content: baseImage ? messageContent : textPrompt,
+          content: imageReferences.length ? messageContent : textPrompt,
         }
       ],
       modalities: modalities,
